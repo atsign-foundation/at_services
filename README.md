@@ -2,8 +2,8 @@
 
 # The @ platform ancillary services
 
-This repo is intended for packages which complement the core @ platform. The first of these is
-**_at_secondary_proxy_** which acts as a TCP reverse proxy for connections from clients to
+This repo is intended for packages which complement the core @ platform, the first of which is
+* **_[at_secondary_proxy](at_secondary_proxy/README.md)_** which acts as a TCP reverse proxy for connections from clients to
 secondary servers, where the clients are limited to standard ports
 
 ### Contributions welcome!

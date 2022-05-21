@@ -2,7 +2,7 @@
 
 ## at_secondary_proxy
 
-**_at_secondary_proxy_** which acts as a TCP reverse proxy for connections from clients to
+**_at_secondary_proxy_** acts as a TCP reverse proxy for connections from clients to
 secondary servers, where the clients are limited to standard ports
 
 ### Contributions welcome!
