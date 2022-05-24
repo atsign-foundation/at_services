@@ -24,7 +24,8 @@ class SecondaryConnectionBridge {
     _clientSocket.listen(_clientOnData, onDone: _clientOnDone, onError: _clientOnError);
     _clientSocket.done.onError((error, stackTrace) => (_clientOnError(error)));
 
-    _logger.info("Listening on new client socket");
+    _logger.info("Sending @ prompt; started listening on new client socket");
+    _clientSocket.write("@");
   }
 
   final _buffer = ByteBuffer(terminatingChar: '\n', capacity: 511);
