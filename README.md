@@ -1,8 +1,8 @@
-<img width=250px src="https://atsign.dev/assets/img/@platform_logo_grey.svg?sanitize=true">
+<img width=250px src="https://atsign.dev/assets/img/atPlatform_logo_gray.svg?sanitize=true">
 
-# The @ platform ancillary services
+# The atPlatform ancillary services
 
-This repo is intended for packages which complement the core @ platform, the first of which is
+This repo is intended for packages which complement the core atPlatform, the first of which is
 * **_[at_secondary_proxy](at_secondary_proxy/README.md)_** which acts as a TCP reverse proxy for connections from clients to
 secondary servers, where the clients are limited to standard ports
 
