@@ -21,6 +21,6 @@ The core functionality of the at_daemon server.
 
 ### at_daemon_client
 
-A client that allows flutter web applications to interact with the local
+A client that allows web applications to interact with the local
 at_daemon server.
 
