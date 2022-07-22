@@ -3,6 +3,6 @@
 /// More dartdocs go here.
 library at_daemon_core;
 
-export 'src/at_daemon_core_base.dart';
+export 'src/utils/logger.dart';
 
 // TODO: Export any libraries intended for clients of this package.
