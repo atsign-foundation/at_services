@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'concat.dart';
+import 'package:at_daemon_core/src/utils/concat.dart';
 
 // Get the home directory or null if unknown.
 String? getHomeDirectory() {
@@ -25,8 +25,8 @@ String? getAtsignDirectory() => getHomeDirectory()?.concat('/.atsign');
 String? getKeysDirectory() => getAtsignDirectory()?.concat('/keys');
 String? getDaemonDirectory() => getAtsignDirectory()?.concat('/at_daemon');
 
+String? getOnboardedFile() => getDaemonDirectory()?.concat('/onboarded.json');
 String? getConfigDirectory(String atSign) => getDaemonDirectory()?.concat('/$atSign');
 
 String? getWhitelistFile(String atSign) => getConfigDirectory(atSign)?.concat('/whitelist.json');
 String? getBlacklistFile(String atSign) => getConfigDirectory(atSign)?.concat('/blacklist.json');
-String? getOnboardedFile(String atSign) => getConfigDirectory(atSign)?.concat('/onboarded.json');
