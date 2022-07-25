@@ -1,6 +1,6 @@
 name: at_daemon_cli
 description: A sample command-line application.
-version: 0.1.0
+version: 1.0.0
 homepage: https://github.com/atsign-foundation/at_services/tree/trunk/at_daemon
 
 environment:
@@ -8,8 +8,7 @@ environment:
 
 dependencies:
   at_onboarding_cli: ^1.0.0
-  at_daemon_core:
-    path: ../at_daemon_core
+  at_daemon_core: ^1.0.0
   args: ^2.3.1
   chalkdart: ^2.0.8
   at_utils: ^3.0.10
