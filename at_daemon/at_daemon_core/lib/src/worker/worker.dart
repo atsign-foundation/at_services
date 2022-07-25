@@ -1,8 +1,8 @@
 // The entry point for the client's isolate
 import 'dart:isolate';
-import 'package:at_daemon_core/src/models/worker_action.dart';
+import 'package:at_daemon_core/src/worker/worker_action.dart';
 
-import 'package:at_daemon_core/src/models/isolate_channel.dart';
+import 'package:at_daemon_core/src/worker/isolate_channel.dart';
 import 'package:at_daemon_core/src/utils/onboard_worker.dart';
 import 'package:at_daemon_core/src/utils/exceptions.dart';
 

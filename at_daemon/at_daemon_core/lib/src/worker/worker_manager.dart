@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:isolate';
 
 import 'package:at_daemon_core/at_daemon_core.dart';
-import 'package:at_daemon_core/src/models/worker_action.dart';
-import 'package:at_daemon_core/src/models/isolate_channel.dart';
-import 'package:at_daemon_core/src/services/worker.dart';
+import 'package:at_daemon_core/src/worker/worker_action.dart';
+import 'package:at_daemon_core/src/worker/isolate_channel.dart';
+import 'package:at_daemon_core/src/worker/worker.dart';
 import 'package:at_daemon_core/src/utils/exceptions.dart';
 
 /// [WorkerManager] is responsible for overseeing the creation of each worker isolate
