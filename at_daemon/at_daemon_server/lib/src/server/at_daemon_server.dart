@@ -1,10 +1,13 @@
-import 'dart:async';
-
 import 'package:at_daemon_core/at_daemon_core.dart';
-import 'package:at_daemon_server/src/server/at_daemon_socket.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+
+import 'connection_request_handler.dart';
+import 'at_daemon_socket.dart';
+
+export 'connection_request_handler.dart';
+export 'at_daemon_socket.dart';
 
 class AtDaemonServer {
   ConnectionRequestHandler connectionRequestHandler;
@@ -22,17 +25,3 @@ class AtDaemonServer {
   }
 }
 
-abstract class ConnectionRequestHandler {
-  FutureOr<ConnectionResult> handleConnectionRequest(SessionSyn syn);
-}
-
-enum ConnectionResult {
-  allowOnce,
-  denyOnce,
-  whitelistDomain,
-  whitelistAtSign,
-  whitelistBoth,
-  blacklistDomain,
-  blacklistAtSign,
-  blacklistBoth,
-}

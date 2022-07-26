@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:at_daemon_core/at_daemon_core.dart';
+import 'package:at_daemon_server/src/config/blacklist_service.dart';
+import 'package:at_daemon_server/src/config/whitelist_service.dart';
 import 'package:at_daemon_server/src/server/at_daemon_server.dart';
 import 'package:at_daemon_server/src/util/exceptions.dart';
 import 'package:at_daemon_server/src/worker/worker.dart';
@@ -19,43 +21,33 @@ class AtDaemonSocket {
       : messages = StreamQueue(socketChannel.stream);
 
   Future<void> start() async {
-    await handshake();
+    if (!await handshake()) return;
     _channel = await WorkerManager().getWorkerIsolateChannel(_session.atSign);
   }
 
-  Future<void> handshake() async {
+  Future<bool> handshake() async {
     RSAKeypair keyPair = EncryptionUtil.generateRSAKeys();
 
     SessionSyn syn = SessionSyn.fromJson(jsonDecode(await messages.next));
     _session = Session.fromSyn(syn);
 
     ConnectionResult connectionResult = await connectionRequestHandler.handleConnectionRequest(syn);
-    switch (connectionResult) {
-      case ConnectionResult.whitelistBoth:
-      case ConnectionResult.whitelistAtSign:
-      case ConnectionResult.whitelistDomain:
-        // WhitelistService.add(syn, connectionResult);
-      case ConnectionResult.allowOnce:
-        break;
-      case ConnectionResult.blacklistBoth:
-      case ConnectionResult.blacklistAtSign:
-      case ConnectionResult.blacklistDomain:
-        // BlacklistService.add(syn, connectionResult);
-      case ConnectionResult.denyOnce:
-      default:
-        return;
-    }
+    if (connectionResult.whitelist) WhitelistService().add(_session.atSign, until: connectionResult.until);
+    if (connectionResult.blacklist) BlacklistService().add(_session.atSign, until: connectionResult.until);
+    if (!connectionResult.allow) return false;
 
     SessionSynAck synAck = SessionSynAck(publicKey: keyPair.publicKey.toString());
     socketChannel.sink.add(jsonEncode(synAck.toJson()));
 
     SessionAck ack = SessionAck.fromJson(jsonDecode(await messages.next));
     _session.sessionKey = EncryptionUtil.decryptKey(ack.encryptedSessionKey, keyPair.privateKey.toString());
+    return true;
   }
 
   Future<void> listen() async {
     while (await messages.hasNext) {
       var event = await messages.next;
+      // TODO
     }
     // Websocket closed, closing worker
     _channel.sendPort?.send(KillAction());
