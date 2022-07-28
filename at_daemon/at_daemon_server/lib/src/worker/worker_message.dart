@@ -17,23 +17,30 @@ class Killed implements WorkerResult {}
 class OnboardAction implements WorkerAction {
   final String atSign;
   final String? keyFile;
-  OnboardAction(this.atSign, {this.keyFile});
+  const OnboardAction(this.atSign, {this.keyFile});
 }
 
 class Onboarded implements WorkerResult {
   final bool isOnboarded;
-  Onboarded(this.isOnboarded);
+  const Onboarded(this.isOnboarded);
 }
 
 // Create Session
 class CreateSessionAction implements WorkerAction {
   final SendPort sendPort;
-  CreateSessionAction(this.sendPort);
+  const CreateSessionAction(this.sendPort);
+}
+
+// Echo a message
+class EchoAction implements WorkerAction {
+  final String atSign;
+  final Iterable<String> message;
+  const EchoAction(this.atSign, this.message);
 }
 
 // VERBS
 
-//Get
+// Get
 
 // Put
 

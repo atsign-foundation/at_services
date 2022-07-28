@@ -5,8 +5,6 @@ import 'package:async/async.dart';
 import 'package:at_daemon_core/at_daemon_core.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
 
-import '../util/exceptions.dart';
-
 part 'isolate_channel.dart';
 part 'worker_message.dart';
 part 'worker_manager.dart';
@@ -32,17 +30,22 @@ class AtClientWorker extends Worker {
     channel.receivePort.listen((event) async {
       if (event is OnboardAction) {
         try {
-          bool result =  await OnboardingManager().handler.onboard(atSign: event.atSign);
+          bool result = await OnboardingManager().handler.onboard(atSign: event.atSign);
           channel.sendPort!.send(Onboarded(result));
           return;
         } on OnboardException catch (e) {
           Isolate.exit(channel.sendPort, e);
         }
       }
+      if (event is EchoAction) {
+        channel.sendPort!.send(event);
+        return;
+      }
       if (event is CreateSessionAction) {
         SessionWorker(event.sendPort);
+        return;
       }
-      if (event is KillAction) Isolate.exit(channel.sendPort, null);
+      if (event is KillAction) Isolate.exit(channel.sendPort, Killed());
     });
   }
 }

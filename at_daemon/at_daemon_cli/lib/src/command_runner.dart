@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:args/args.dart' show ArgResults;
 import 'package:args/command_runner.dart' show CommandRunner, UsageException;
+import 'package:at_daemon_cli/src/commands/echo.dart';
 import 'package:at_daemon_cli/src/commands/exit.dart';
+import 'package:at_daemon_cli/src/commands/kill.dart';
 import 'package:at_daemon_cli/src/commands/onboard.dart';
 import 'package:chalkdart/chalk.dart' show chalk;
 import 'package:at_utils/at_logger.dart';
@@ -15,6 +17,8 @@ class AtCommandRunner extends CommandRunner<bool> {
     argParser.addFlag('verbose', negatable: false, abbr: 'v', help: 'Verbose logging');
     addCommand(ExitCommand());
     addCommand(OnboardCommand());
+    addCommand(EchoCommand());
+    addCommand(KillCommand());
   }
 
   @override

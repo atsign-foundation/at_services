@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:at_daemon_core/at_daemon_core.dart';
 import 'package:at_daemon_server/src/server/onboarding_manager.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -17,10 +19,9 @@ class AtDaemonServer {
     OnboardingManager().handler = onboardingHandler;
   }
 
-  void start() {
-    shelf_io.serve(webSocketHandler(_handleSocket), AtDaemonConstants.address, AtDaemonConstants.port).then((server) {
-      print('Serving at ${AtDaemonConstants.socketUrl}');
-    });
+  Future<void> start() async {
+    await shelf_io.serve(webSocketHandler(_handleSocket), AtDaemonConstants.address, AtDaemonConstants.port);
+    stdout.writeln('Serving at ${AtDaemonConstants.socketUrl}');
   }
 
   void _handleSocket(WebSocketChannel socketChannel) {

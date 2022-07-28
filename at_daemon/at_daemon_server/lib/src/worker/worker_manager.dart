@@ -8,7 +8,7 @@ abstract class AtSignWorkerManager {
   Future<WorkerIsolateChannel> create(String atSign);
   Future<WorkerIsolateChannel> getChannel(String atSign);
   Future<Iterable<WorkerIsolateChannel>> getAllChannels();
-  void kill(String atSign);
+  Future<bool> kill(String atSign);
 }
 
 class _WorkerManager implements AtSignWorkerManager {
@@ -26,8 +26,6 @@ class _WorkerManager implements AtSignWorkerManager {
 
     await Isolate.spawn(workerEntry, channel.receivePort.sendPort);
     channel.sendPort = await channel.streamQueue.next as SendPort;
-    channel.sendPort!.send(OnboardAction(atSign));
-    await channel.streamQueue.next;
 
     return _workerChannelMap[atSign] = channel;
   }
@@ -43,10 +41,10 @@ class _WorkerManager implements AtSignWorkerManager {
   }
 
   @override
-  Future<void> kill(String atSign) async {
+  Future<bool> kill(String atSign) async {
     WorkerIsolateChannel? channel = _workerChannelMap.remove(atSign);
-    if (channel?.sendPort == null) return;
+    if (channel?.sendPort == null) return false;
     channel!.sendPort!.send(KillAction());
-    await channel.streamQueue.next;
+    return (await channel.streamQueue.next is Killed);
   }
 }

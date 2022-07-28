@@ -1,12 +1,14 @@
+import 'dart:io';
+
 import 'package:args/command_runner.dart';
 import 'package:at_commons/at_commons.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
 import 'package:at_utils/at_utils.dart';
 
-const _name = 'onboard';
-const _description = 'Onboard an atSign to the system';
+const _name = 'kill';
+const _description = 'kill an AtClient for an atSign';
 
-class OnboardCommand extends Command<bool> {
+class KillCommand extends Command<bool> {
   @override
   String get name => _name;
 
@@ -18,10 +20,10 @@ class OnboardCommand extends Command<bool> {
     String? atSign;
     try {
       atSign = validateAtSignArg();
-      WorkerIsolateChannel channel = await AtSignWorkerManager().getChannel(atSign);
-      channel.sendPort!.send(OnboardAction(atSign));
-      Onboarded result = await channel.streamQueue.next;
-      return result.isOnboarded;
+      bool result = await AtSignWorkerManager().kill(atSign);
+      String message = result ? 'Killed $atSign' : 'Failed to kill $atSign (could already be dead).';
+      stdout.writeln(message);
+      return result;
     } on InvalidAtSignException catch (e) {
       throw FormatException(e.message);
     }
