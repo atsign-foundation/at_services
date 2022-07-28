@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:async/async.dart';
 import 'package:at_daemon_core/at_daemon_core.dart';
-import 'package:at_daemon_server/src/config/blacklist_service.dart';
-import 'package:at_daemon_server/src/config/whitelist_service.dart';
+import 'package:at_daemon_server/src/config/config_service.dart';
+import 'package:at_daemon_server/src/config/list_tuple.dart';
 import 'package:at_daemon_server/src/server/at_daemon_server.dart';
 import 'package:at_daemon_server/src/util/exceptions.dart';
 import 'package:at_daemon_server/src/worker/worker.dart';
@@ -14,17 +14,24 @@ class AtDaemonSocket {
   final WebSocketChannel socketChannel;
   final StreamQueue messages;
   late Session _session;
-  late WorkerIsolateChannel _channel;
+  final WorkerIsolateChannel _channel;
   final ConnectionRequestHandler connectionRequestHandler;
 
   AtDaemonSocket({required this.socketChannel, required this.connectionRequestHandler})
-      : messages = StreamQueue(socketChannel.stream);
+      : messages = StreamQueue(socketChannel.stream),
+        _channel = WorkerIsolateChannel();
 
   Future<void> start() async {
-    if (!await handshake()) return;
-    _channel = await WorkerManager().getWorkerIsolateChannel(_session.atSign);
+    try {
+      if (!await handshake()) return;
+      await createSessionChannel();
+    } catch (e) {
+      atDaemonLogger.severe(e);
+    }
+    await listen();
   }
 
+  // Create the session on the websocket side
   Future<bool> handshake() async {
     RSAKeypair keyPair = EncryptionUtil.generateRSAKeys();
 
@@ -32,8 +39,16 @@ class AtDaemonSocket {
     _session = Session.fromSyn(syn);
 
     ConnectionResult connectionResult = await connectionRequestHandler.handleConnectionRequest(syn);
-    if (connectionResult.whitelist) WhitelistService().add(_session.atSign, until: connectionResult.until);
-    if (connectionResult.blacklist) BlacklistService().add(_session.atSign, until: connectionResult.until);
+    if (connectionResult.whitelist) {
+      ConfigService().whitelistAdd(
+        ListTuple(_session.atSign, _session.clientId, until: connectionResult.until),
+      );
+    }
+    if (connectionResult.blacklist) {
+      ConfigService().blacklistAdd(
+        ListTuple(_session.atSign, _session.clientId, until: connectionResult.until),
+      );
+    }
     if (!connectionResult.allow) return false;
 
     SessionSynAck synAck = SessionSynAck(publicKey: keyPair.publicKey.toString());
@@ -41,13 +56,27 @@ class AtDaemonSocket {
 
     SessionAck ack = SessionAck.fromJson(jsonDecode(await messages.next));
     _session.sessionKey = EncryptionUtil.decryptKey(ack.encryptedSessionKey, keyPair.privateKey.toString());
+
     return true;
+  }
+
+  // Create the session on the dart isolate side
+  Future<void> createSessionChannel() async {
+    var mainChannel = await AtSignWorkerManager().getChannel(_session.atSign);
+    mainChannel.sendPort!.send(CreateSessionAction(_channel.receivePort.sendPort));
+    _channel.sendPort = await _channel.streamQueue.next;
   }
 
   Future<void> listen() async {
     while (await messages.hasNext) {
       var event = await messages.next;
-      // TODO
+
+      // TODO Transform event
+
+      _channel.sendPort!.send(event);
+      var result = await _channel.streamQueue.next;
+
+      socketChannel.sink.add(result);
     }
     // Websocket closed, closing worker
     _channel.sendPort?.send(KillAction());

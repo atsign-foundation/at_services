@@ -9,8 +9,6 @@ String? getHomeDirectory() {
     case 'windows':
       return Platform.environment['USERPROFILE'];
     case 'android':
-      // Probably want internal storage.
-      return '/storage/sdcard0';
     case 'ios':
     case 'fuchsia':
     default:
@@ -21,7 +19,6 @@ String? getHomeDirectory() {
 String? getAtsignDirectory() => getHomeDirectory()?.concat('/.atsign');
 String? getKeysDirectory() => getAtsignDirectory()?.concat('/keys');
 String? getDaemonDirectory() => getAtsignDirectory()?.concat('/at_daemon');
-String? getConfigDirectory(String atSign) => getDaemonDirectory()?.concat('/$atSign');
 
 // Used to keep the functions in path_provider.dart clean
 // Shortens the syntax of returning null when attempting to concatenate a String to null

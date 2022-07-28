@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
+import 'package:at_daemon_server/at_daemon_server.dart';
 
 const _name = 'exit';
 const _description = 'Exit the daemon';
@@ -18,6 +19,17 @@ class ExitCommand extends Command<bool> {
 
   @override
   Future<bool> run() async {
+    stdout.writeln('Closing background processes...');
+    await Future.wait(
+      await AtSignWorkerManager().getAllChannels().then(
+            (iter) => iter.map(
+              (WorkerIsolateChannel channel) async {
+                channel.sendPort!.send(KillAction());
+                await channel.streamQueue.next;
+              },
+            ),
+          ),
+    );
     exit(0);
   }
 }

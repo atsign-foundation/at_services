@@ -3,38 +3,62 @@ import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:at_daemon_core/at_daemon_core.dart';
+import 'package:at_daemon_server/at_daemon_server.dart';
 
 import '../util/exceptions.dart';
 
 part 'isolate_channel.dart';
-part 'onboard_worker.dart';
 part 'worker_message.dart';
 part 'worker_manager.dart';
 
 void workerEntry(SendPort port) {
-  Worker(port).listen();
+  AtClientWorker(port).listen();
 }
 
-class Worker {
+abstract class Worker {
   final IsolateChannel channel;
   Worker(SendPort port) : channel = IsolateChannel(port) {
-    port.send(channel.receivePort);
+    port.send(channel.receivePort.sendPort);
   }
 
+  FutureOr<void> listen();
+}
+
+class AtClientWorker extends Worker {
+  AtClientWorker(super.port);
+
+  @override
   Future<void> listen() async {
     channel.receivePort.listen((event) async {
-      if (event is WorkerAction) return await handleWorkerAction(event);
+      if (event is OnboardAction) {
+        try {
+          bool result =  await OnboardingManager().handler.onboard(atSign: event.atSign);
+          channel.sendPort!.send(Onboarded(result));
+          return;
+        } on OnboardException catch (e) {
+          Isolate.exit(channel.sendPort, e);
+        }
+      }
+      if (event is CreateSessionAction) {
+        SessionWorker(event.sendPort);
+      }
+      if (event is KillAction) Isolate.exit(channel.sendPort, null);
     });
   }
+}
 
-  Future<void> handleWorkerAction(WorkerAction event) async {
-    if (event is OnboardAction) {
-      try {
-        return await onboardWorker(event.atSign);
-      } on OnboardException catch (e) {
-        Isolate.exit(channel.sendPort, e);
+class SessionWorker extends Worker {
+  SessionWorker(super.port);
+
+  @override
+  Future<void> listen() async {
+    // TODO verb implementations
+
+    channel.receivePort.listen((event) {
+      if (event is KillAction) {
+        channel.receivePort.close();
+        channel.sendPort!.send(Killed());
       }
-    }
-    if (event is KillAction) Isolate.exit(channel.sendPort, null);
+    });
   }
 }

@@ -7,15 +7,22 @@ environment:
   sdk: '>=2.17.6 <3.0.0'
 
 dependencies:
+  at_client: ^3.0.0
   at_onboarding_cli: ^1.0.0
   at_daemon_core: ^1.0.0
+  at_daemon_server: ^1.0.0
   args: ^2.3.1
   chalkdart: ^2.0.8
   at_utils: ^3.0.10
   at_commons: ^3.0.19
-  path_provider: ^2.0.11
   interact: ^2.1.1
 
 dev_dependencies:
   lints: ^1.0.1
   test: ^1.16.0
+
+dependency_overrides:
+  at_daemon_core:
+    path: ../at_daemon_core
+  at_daemon_server:
+    path: ../at_daemon_server

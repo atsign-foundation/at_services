@@ -1,21 +1,21 @@
 part of 'worker.dart';
 
-/// [WorkerManager] is responsible for overseeing the creation of each worker isolate
-abstract class WorkerManager {
-  static final WorkerManager _singleton = _WorkerManager();
-  factory WorkerManager() => _singleton;
+/// [AtSignWorkerManager] is responsible for overseeing the creation of each worker isolate
+abstract class AtSignWorkerManager {
+  static final AtSignWorkerManager _singleton = _WorkerManager();
+  factory AtSignWorkerManager() => _singleton;
 
-  Future<WorkerIsolateChannel> createWorkerIsolate(String atSign);
-  Future<WorkerIsolateChannel> getWorkerIsolateChannel(String atSign);
-  void killWorkerIsolate(String atSign);
+  Future<WorkerIsolateChannel> create(String atSign);
+  Future<WorkerIsolateChannel> getChannel(String atSign);
+  Future<Iterable<WorkerIsolateChannel>> getAllChannels();
+  void kill(String atSign);
 }
 
-// TODO  Mutex locks on worker isolates/at_clients
-class _WorkerManager implements WorkerManager {
+class _WorkerManager implements AtSignWorkerManager {
   static final Map<String, WorkerIsolateChannel> _workerChannelMap = {};
 
   @override
-  Future<WorkerIsolateChannel> createWorkerIsolate(String atSign) async {
+  Future<WorkerIsolateChannel> create(String atSign) async {
     if (_workerChannelMap.containsKey(atSign)) {
       final String message = 'Isolate for $atSign already spawned.';
       atDaemonLogger.severe(message);
@@ -26,18 +26,24 @@ class _WorkerManager implements WorkerManager {
 
     await Isolate.spawn(workerEntry, channel.receivePort.sendPort);
     channel.sendPort = await channel.streamQueue.next as SendPort;
+    channel.sendPort!.send(OnboardAction(atSign));
+    await channel.streamQueue.next;
 
-    _workerChannelMap[atSign] = channel;
-    return channel;
+    return _workerChannelMap[atSign] = channel;
   }
 
   @override
-  Future<WorkerIsolateChannel> getWorkerIsolateChannel(String atSign) async {
-    return _workerChannelMap[atSign] ?? await createWorkerIsolate(atSign);
+  Future<WorkerIsolateChannel> getChannel(String atSign) async {
+    return _workerChannelMap[atSign] ?? await create(atSign);
   }
 
   @override
-  Future<void> killWorkerIsolate(String atSign) async {
+  Future<Iterable<WorkerIsolateChannel>> getAllChannels() async {
+    return _workerChannelMap.values;
+  }
+
+  @override
+  Future<void> kill(String atSign) async {
     WorkerIsolateChannel? channel = _workerChannelMap.remove(atSign);
     if (channel?.sendPort == null) return;
     channel!.sendPort!.send(KillAction());
