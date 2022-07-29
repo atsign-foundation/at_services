@@ -5,6 +5,8 @@ import 'package:at_daemon_core/at_daemon_core.dart';
 import 'package:at_daemon_server/src/config/config_service.dart';
 import 'package:at_daemon_server/src/config/list_tuple.dart';
 import 'package:at_daemon_server/src/server/at_daemon_server.dart';
+import 'package:at_daemon_server/src/server/payload_handler.dart';
+import 'package:at_daemon_server/src/server/payload_manager.dart';
 import 'package:at_daemon_server/src/util/exceptions.dart';
 import 'package:at_daemon_server/src/worker/worker.dart';
 import 'package:crypton/crypton.dart';
@@ -69,11 +71,21 @@ class AtDaemonSocket {
 
   Future<void> listen() async {
     while (await messages.hasNext) {
-      var event = await messages.next;
+      // TODO improve this layer using existing transformers in at_client
+      // Transformers first need to be decoupled from AtClient in order to use them.
+      String payload = await messages.next;
+      late WorkerMessage action;
 
-      // TODO Transform event
+      PayloadHandler? handler = PayloadManager().getPayloadHandler(payload);
 
-      _channel.sendPort!.send(event);
+      if (handler == null) {
+        socketChannel.sink.add(jsonEncode(UnknownCommandResponse().toJson()));
+        continue;
+      }
+
+      action = handler.getAction(handler.transformPayload(payload));
+
+      _channel.sendPort!.send(action);
       var result = await _channel.streamQueue.next;
 
       socketChannel.sink.add(result);

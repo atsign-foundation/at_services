@@ -4,7 +4,7 @@ abstract class WorkerMessage {}
 
 abstract class WorkerAction implements WorkerMessage {}
 
-abstract class WorkerVerb implements WorkerMessage {}
+abstract class WorkerVerb implements WorkerAction {}
 
 abstract class WorkerResult implements WorkerMessage {}
 
@@ -41,8 +41,39 @@ class EchoAction implements WorkerAction {
 }
 
 // VERBS
+class GetVerb implements WorkerVerb {
+  final AtKey key;
+  final bool isDedicated;
+  const GetVerb(this.key, {this.isDedicated = false});
+}
 
-// Get
+class GetResult implements WorkerResult {
+  final dynamic value;
+  const GetResult(this.value);
+}
 
-// Put
+class PutVerb implements WorkerVerb {
+  final AtKey key;
+  final dynamic value;
+  final bool isDedicated;
+  const PutVerb(this.key, this.value, {this.isDedicated = false});
+}
 
+class PutResult implements WorkerResult {
+  final bool result;
+  const PutResult(this.result);
+}
+
+class GetKeysVerb implements WorkerVerb {
+  final String? regex;
+  final String? sharedBy;
+  final String? sharedWith;
+  final bool showHiddenKeys;
+  final bool isDedicated;
+  GetKeysVerb({this.regex, this.sharedBy, this.sharedWith, this.showHiddenKeys = false, this.isDedicated = false});
+}
+
+class GetKeysResult implements WorkerResult {
+  final List<String> keys;
+  GetKeysResult(this.keys);
+}
