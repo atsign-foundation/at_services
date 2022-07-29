@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:async/async.dart';
 import 'package:at_daemon_cli/at_daemon_cli.dart';
-import 'package:at_daemon_cli/src/services/cli_connection_request_handler.dart';
-import 'package:at_daemon_cli/src/services/cli_onboarding_handler.dart';
+import 'package:at_daemon_cli/src/models/cli_connection_request_handler.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
 
 Future<void> main() async {
@@ -11,7 +10,6 @@ Future<void> main() async {
 
   await AtDaemonServer(
     connectionRequestHandler: CliConnectionRequestHandler(),
-    onboardingHandler: CliOnboardingHandler(),
   ).start();
 
   while (true) {
@@ -24,9 +22,7 @@ Future<void> main() async {
   }
 }
 
-Future<void> startServer() async {
-
-}
+Future<void> startServer() async {}
 
 var _stdinLines = StreamQueue(LineSplitter().bind(Utf8Decoder().bind(stdin)));
 

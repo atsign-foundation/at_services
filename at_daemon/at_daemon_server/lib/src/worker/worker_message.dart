@@ -16,8 +16,10 @@ class Killed implements WorkerResult {}
 // Onboard
 class OnboardAction implements WorkerAction {
   final String atSign;
-  final String? keyFile;
-  const OnboardAction(this.atSign, {this.keyFile});
+  final String keyFilePath;
+  final String logLevel;
+  const OnboardAction({required this.atSign, required this.keyFilePath, String? logLevel})
+      : logLevel = logLevel ?? 'severe';
 }
 
 class Onboarded implements WorkerResult {

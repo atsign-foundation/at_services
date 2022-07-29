@@ -40,12 +40,12 @@ class AtDaemonSocket {
 
     ConnectionResult connectionResult = await connectionRequestHandler.handleConnectionRequest(syn);
     if (connectionResult.whitelist) {
-      ConfigService().whitelistAdd(
+      ConfigService().addWhitelist(
         ListTuple(_session.atSign, _session.clientId, until: connectionResult.until),
       );
     }
     if (connectionResult.blacklist) {
-      ConfigService().blacklistAdd(
+      ConfigService().addBlacklist(
         ListTuple(_session.atSign, _session.clientId, until: connectionResult.until),
       );
     }

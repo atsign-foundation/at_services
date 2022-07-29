@@ -1,14 +1,13 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
 import 'package:at_commons/at_commons.dart';
+import 'package:at_daemon_cli/src/models/command_base.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
-import 'package:at_utils/at_utils.dart';
 
 const _name = 'echo';
-const _description = 'echo a string back';
+const _description = 'echo a string back from an AtClient\'s isolate';
 
-class EchoCommand extends Command<bool> {
+class EchoCommand extends AtSignCommandBase<bool> {
   @override
   String get name => _name;
 
@@ -30,9 +29,5 @@ class EchoCommand extends Command<bool> {
     } on InvalidAtSignException catch (e) {
       throw FormatException(e.message);
     }
-  }
-
-  String validateAtSignArg() {
-    return AtUtils.fixAtSign(AtUtils.formatAtSign(argResults!.rest.first)!);
   }
 }

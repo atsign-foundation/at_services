@@ -20,12 +20,16 @@ class ConfigService {
   @protected
   Map<String, String> onboarded;
 
-  ConfigService({this.blacklist = const [], this.whitelist = const [], this.onboarded = const {}});
+  ConfigService({List<ListTuple>? blacklist, List<ListTuple>? whitelist, Map<String, String>? onboarded})
+      : blacklist = blacklist ?? [],
+        whitelist = whitelist ?? [],
+        onboarded = onboarded ?? {};
 
   factory ConfigService.fromJson(json) => _$ConfigServiceFromJson(json);
   Map<String, dynamic> toJson() => _$ConfigServiceToJson(this);
 
   Future<void> load() async {
+    if (!await _configFile.exists()) return;
     ConfigService loaded = ConfigService.fromJson(jsonDecode(await _configFile.readAsString()));
     blacklist = loaded.blacklist;
     whitelist = loaded.whitelist;
@@ -33,25 +37,29 @@ class ConfigService {
   }
 
   Future<void> save() async {
+    if (!await _configFile.exists()) await _configFile.create(recursive: true);
     await _configFile.writeAsString(jsonEncode(toJson()));
   }
 
-  File get _configFile => File(getDaemonDirectory()?.concat('config.json') ??
+  File get _configFile => File(getDaemonDirectory()?.concat('/config.json') ??
       (throw PathException('Unable to resolve config directory on this platform.')));
 
-  void whitelistAdd(ListTuple t) => _addToList(whitelist, t);
-  void blacklistAdd(ListTuple t) => _addToList(blacklist, t);
+  void addWhitelist(ListTuple t) => _addToList(whitelist, t);
+  void addBlacklist(ListTuple t) => _addToList(blacklist, t);
 
-  void whitelistRemove(ListTuple t) => _removeFromList(whitelist, t);
-  void blacklistRemove(ListTuple t) => _removeFromList(blacklist, t);
+  void removeWhitelist(ListTuple t) => _removeFromList(whitelist, t);
+  void removeBlacklist(ListTuple t) => _removeFromList(blacklist, t);
 
-  void onboardedAdd(String atSign, String keyFile) {
+  void addOnboarded(String atSign, String keyFile) {
     onboarded[atSign] = keyFile;
   }
 
-  void onboardedRemove(String atSign) {
+  void removeOnboarded(String atSign) {
     onboarded.remove(atSign);
   }
+
+  String? getOnboarded(String atSign) => onboarded[atSign];
+  Iterable<String> listOnboarded() => onboarded.keys;
 }
 
 void _addToList(List<ListTuple> l, ListTuple t) {

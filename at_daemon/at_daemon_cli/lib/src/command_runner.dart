@@ -5,12 +5,14 @@ import 'package:args/command_runner.dart' show CommandRunner, UsageException;
 import 'package:at_daemon_cli/src/commands/echo.dart';
 import 'package:at_daemon_cli/src/commands/exit.dart';
 import 'package:at_daemon_cli/src/commands/kill.dart';
+import 'package:at_daemon_cli/src/commands/ls_keys.dart';
 import 'package:at_daemon_cli/src/commands/onboard.dart';
+import 'package:at_daemon_cli/src/commands/ps.dart';
 import 'package:chalkdart/chalk.dart' show chalk;
 import 'package:at_utils/at_logger.dart';
 
-const String name = 'exec';
-const String description = 'The internal command handler.';
+const String name = '';
+const String description = '';
 
 class AtCommandRunner extends CommandRunner<bool> {
   AtCommandRunner() : super(name, description) {
@@ -19,7 +21,22 @@ class AtCommandRunner extends CommandRunner<bool> {
     addCommand(OnboardCommand());
     addCommand(EchoCommand());
     addCommand(KillCommand());
+    addCommand(PsCommand());
+    addCommand(LsKeysCommand());
   }
+
+  @override
+  String get invocation => '<command> [arguments]';
+
+  @override
+  String get executableName => '';
+
+  @override
+  String get usage => super.usage.splitMapJoin(
+        '"$executableName help',
+        onMatch: (_) => '"help',
+        onNonMatch: (m) => m,
+      );
 
   @override
   Future<bool> run(Iterable<String> args) async {

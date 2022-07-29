@@ -1,13 +1,13 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
+import 'package:at_daemon_cli/src/models/command_base.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
 
 const _name = 'exit';
-const _description = 'Exit the daemon';
+const _description = 'exit the daemon';
 const _aliases = ['q', 'quit'];
 
-class ExitCommand extends Command<bool> {
+class ExitCommand extends CommandBase<bool> {
   @override
   String get name => _name;
 

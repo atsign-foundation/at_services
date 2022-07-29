@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:async/async.dart';
 import 'package:at_daemon_core/at_daemon_core.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
+import 'package:at_onboarding_cli/at_onboarding_cli.dart';
+import 'package:at_utils/at_logger.dart';
 
 part 'isolate_channel.dart';
 part 'worker_message.dart';
@@ -30,11 +33,28 @@ class AtClientWorker extends Worker {
     channel.receivePort.listen((event) async {
       if (event is OnboardAction) {
         try {
-          bool result = await OnboardingManager().handler.onboard(atSign: event.atSign);
+          AtSignLogger.root_level = event.logLevel;
+
+          Directory configDir = Directory(
+            getDaemonDirectory() ?? (throw PathException('Could not get .atsign directory path')),
+          );
+
+          String storage = '${configDir.path}/.${event.atSign}';
+
+          AtOnboardingPreference atOnboardingPreference = AtOnboardingPreference()
+            ..isLocalStoreRequired = true
+            ..hiveStoragePath = '$storage/hive'
+            ..downloadPath = '$storage/files'
+            ..commitLogPath = '$storage/commitLog'
+            ..rootDomain = 'root.atsign.org'
+            ..atKeysFilePath = event.keyFilePath;
+
+          AtOnboardingService onboardingService = AtOnboardingServiceImpl(event.atSign, atOnboardingPreference);
+          bool result = await onboardingService.authenticate();
           channel.sendPort!.send(Onboarded(result));
           return;
-        } on OnboardException catch (e) {
-          Isolate.exit(channel.sendPort, e);
+        } on OnboardException catch (_) {
+          Isolate.exit(channel.sendPort, Onboarded(false));
         }
       }
       if (event is EchoAction) {

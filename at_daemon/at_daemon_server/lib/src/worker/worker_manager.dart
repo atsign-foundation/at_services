@@ -8,6 +8,7 @@ abstract class AtSignWorkerManager {
   Future<WorkerIsolateChannel> create(String atSign);
   Future<WorkerIsolateChannel> getChannel(String atSign);
   Future<Iterable<WorkerIsolateChannel>> getAllChannels();
+  Map<String, WorkerIsolateChannel> getChannelMap();
   Future<bool> kill(String atSign);
 }
 
@@ -38,6 +39,11 @@ class _WorkerManager implements AtSignWorkerManager {
   @override
   Future<Iterable<WorkerIsolateChannel>> getAllChannels() async {
     return _workerChannelMap.values;
+  }
+
+  @override
+  Map<String, WorkerIsolateChannel> getChannelMap() {
+    return Map.from(_workerChannelMap);
   }
 
   @override
