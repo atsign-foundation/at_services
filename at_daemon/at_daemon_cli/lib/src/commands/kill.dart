@@ -5,7 +5,7 @@ import 'package:at_daemon_cli/src/models/command_base.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
 
 const _name = 'kill';
-const _description = 'kill an AtClient';
+const _description = 'kill an AtClient - e.g. "kill @bob"';
 
 class KillCommand extends AtSignCommandBase<bool> {
   @override

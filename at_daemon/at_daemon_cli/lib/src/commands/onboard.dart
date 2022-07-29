@@ -8,7 +8,7 @@ import 'package:at_utils/at_utils.dart';
 import 'package:chalkdart/chalk.dart';
 
 const _name = 'onboard';
-const _description = 'onboard an atSign';
+const _description = 'onboard an atSign - e.g. "onboard @alice -k /path/to/keys/file"';
 
 class OnboardCommand extends AtSignCommandBase<bool> {
   @override

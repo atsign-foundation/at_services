@@ -5,7 +5,7 @@ import 'package:at_daemon_cli/src/models/command_base.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
 
 const _name = 'echo';
-const _description = 'echo a string back from an AtClient\'s isolate';
+const _description = 'echo a string back from an AtClient\'s isolate - e.g. "echo @alice 12345"';
 
 class EchoCommand extends AtSignCommandBase<bool> {
   @override

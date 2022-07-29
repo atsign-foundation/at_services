@@ -16,6 +16,6 @@ abstract class AtSignCommandBase<T> extends CommandBase<T> {
       throw UsageException('Missing atSign in command invocation.', usage);
     }
 
-    return AtUtils.fixAtSign(AtUtils.formatAtSign(argResults!.rest.single)!);
+    return AtUtils.fixAtSign(AtUtils.formatAtSign(argResults!.rest.first)!);
   }
 }
