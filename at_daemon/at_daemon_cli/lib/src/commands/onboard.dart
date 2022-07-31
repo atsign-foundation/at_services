@@ -1,10 +1,8 @@
 import 'dart:io';
 
-import 'package:args/command_runner.dart';
 import 'package:at_commons/at_commons.dart';
 import 'package:at_daemon_cli/src/models/command_base.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
-import 'package:at_utils/at_utils.dart';
 import 'package:chalkdart/chalk.dart';
 
 const _name = 'onboard';

@@ -27,3 +27,9 @@ dev_dependencies:
 dependency_overrides:
   at_daemon_core:
     path: ../at_daemon_core
+  at_commons:
+    git:
+      url: https://github.com/atsign-foundation/at_tools.git
+      path: at_commons
+      ref: fix_atKey_fromString_and_toString
+

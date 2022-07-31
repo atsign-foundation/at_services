@@ -14,7 +14,7 @@ dependencies:
   args: ^2.3.1
   chalkdart: ^2.0.8
   at_utils: ^3.0.10
-  at_commons: ^3.0.19
+  at_commons: ^3.0.21
   interact: ^2.1.1
 
 dev_dependencies:
@@ -26,3 +26,9 @@ dependency_overrides:
     path: ../at_daemon_core
   at_daemon_server:
     path: ../at_daemon_server
+  at_commons:
+    git:
+      url: https://github.com/atsign-foundation/at_tools.git
+      path: at_commons
+      ref: fix_atKey_fromString_and_toString
+

@@ -1,4 +1,5 @@
 import 'package:at_daemon_server/src/server/payload_handler.dart';
+import 'package:at_daemon_core/at_daemon_core.dart';
 
 class PayloadManager {
   static final PayloadManager _singleton = PayloadManager._();
@@ -9,10 +10,15 @@ class PayloadManager {
 
   PayloadHandler? getPayloadHandler(String jsonEncodedPayload) {
     for (var handler in _payloadHandlers) {
-      if (handler.accept(jsonEncodedPayload)) {
-        return handler;
+      try {
+        if (handler.accept(jsonEncodedPayload)) {
+          return handler;
+        }
+      } catch (e) {
+        atDaemonLogger.warning('GetRequestHandler failed to jsonDecode with exception $e');
       }
     }
+    atDaemonLogger.warning('No payloadHandler found which will accept $jsonEncodedPayload');
     return null;
   }
 

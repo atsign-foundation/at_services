@@ -20,8 +20,9 @@ class EchoCommand extends AtSignCommandBase<bool> {
     try {
       atSign = validateAtSignArg();
       Iterable<String> msg = argResults?.rest.skip(1) ?? [];
+      var echoAction = EchoAction(atSign, msg);
       WorkerIsolateChannel channel = await AtSignWorkerManager().getChannel(atSign);
-      channel.sendPort!.send(EchoAction(atSign, msg));
+      channel.sendPort!.send(echoAction);
       EchoAction result = await channel.streamQueue.next;
       stdout.writeAll(result.message, ' ');
       stdout.writeln('');

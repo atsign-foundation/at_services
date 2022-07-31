@@ -27,10 +27,10 @@ class AtDaemonSocket {
     try {
       if (!await handshake()) return;
       await createSessionChannel();
-    } catch (e) {
-      atDaemonLogger.severe(e);
+      await listen();
+    } catch (e, st) {
+      atDaemonLogger.severe('exception $e, stackTrace $st');
     }
-    await listen();
   }
 
   // Create the session on the websocket side
@@ -56,20 +56,22 @@ class AtDaemonSocket {
     SessionSynAck synAck = SessionSynAck(publicKey: keyPair.publicKey.toString());
     socketChannel.sink.add(jsonEncode(synAck.toJson()));
 
-    SessionAck ack = SessionAck.fromJson(jsonDecode(await messages.next));
-    _session.sessionKey = EncryptionUtil.decryptKey(ack.encryptedSessionKey, keyPair.privateKey.toString());
-
+    // SessionAck ack = SessionAck.fromJson(jsonDecode(await messages.next));
+    // _session.sessionKey = EncryptionUtil.decryptKey(ack.encryptedSessionKey, keyPair.privateKey.toString());
+    // TODO gkc removed this until we really need it
+    _session.sessionKey = 'a1b2c3d4';
     return true;
   }
 
   // Create the session on the dart isolate side
   Future<void> createSessionChannel() async {
     var mainChannel = await AtSignWorkerManager().getChannel(_session.atSign);
-    mainChannel.sendPort!.send(CreateSessionAction(_channel.receivePort.sendPort));
+    mainChannel.sendPort!.send(CreateSessionAction(_channel.receivePort.sendPort, _session.atSign));
     _channel.sendPort = await _channel.streamQueue.next;
   }
 
   Future<void> listen() async {
+    atDaemonLogger.info('AtDaemonSocket: listening');
     while (await messages.hasNext) {
       // TODO improve this layer using existing transformers in at_client
       // Transformers first need to be decoupled from AtClient in order to use them.
@@ -85,10 +87,21 @@ class AtDaemonSocket {
 
       action = handler.getAction(handler.transformPayload(payload));
 
+      atDaemonLogger.info('listen() sending $action to $_channel');
       _channel.sendPort!.send(action);
-      var result = await _channel.streamQueue.next;
+      var result;
 
-      socketChannel.sink.add(result);
+      try {
+        result = await _channel.streamQueue.next;
+      } catch (e, st) {
+        atDaemonLogger.severe('While waiting for response, caught exception $e - stackTrace $st');
+      }
+
+      try {
+        socketChannel.sink.add(result);
+      } catch (e, st) {
+        atDaemonLogger.severe('While sending response to socketChannel, caught exception $e - stackTrace $st');
+      }
     }
     // Websocket closed, closing worker
     _channel.sendPort?.send(KillAction());

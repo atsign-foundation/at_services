@@ -8,10 +8,17 @@ environment:
 
 dependencies:
   at_utils: ^3.0.10
-  at_commons: ^3.0.19
+  at_commons: ^3.0.21
   json_annotation: ^4.6.0
   encrypt: ^5.0.1
   crypton: ^2.0.5
+
+dependency_overrides:
+  at_commons:
+    git:
+      url: https://github.com/atsign-foundation/at_tools.git
+      path: at_commons
+      ref: fix_atKey_fromString_and_toString
 
 dev_dependencies:
   lints: ^1.0.1
