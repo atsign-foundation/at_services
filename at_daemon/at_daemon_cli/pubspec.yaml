@@ -7,7 +7,7 @@ environment:
   sdk: '>=2.17.6 <3.0.0'
 
 dependencies:
-  at_client: ^3.0.0
+  at_client: ^3.0.32
   at_onboarding_cli: ^1.0.0
   at_daemon_core: ^1.0.0
   at_daemon_server: ^1.0.0

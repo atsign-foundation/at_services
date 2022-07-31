@@ -76,6 +76,7 @@ class AtClientWorker extends Worker {
 class SessionWorker extends Worker {
   final String atSign;
   late AtClient atClient;
+  late Stream<AtNotification> notifications;
 
   SessionWorker(super.port, this.atSign);
 
@@ -144,6 +145,7 @@ class SessionWorker extends Worker {
       ..downloadPath = '$storage/files'
       ..commitLogPath = '$storage/commitLog'
       ..rootDomain = 'root.atsign.org'
+      ..namespace = 'at_daemon'
       ..atKeysFilePath = keysFilePath;
 
     AtOnboardingService onboardingService = AtOnboardingServiceImpl(atSign, atOnboardingPreference);
@@ -153,6 +155,11 @@ class SessionWorker extends Worker {
     }
 
     atClient = (await onboardingService.getAtClient())!;
+
+    notifications = AtClientManager.getInstance().notificationService.subscribe(regex: '.*', shouldDecrypt: true);
+    notifications.listen((AtNotification event) {
+      channel.sendPort!.send(jsonEncode(event));
+    });
 
     _initialized = true;
   }

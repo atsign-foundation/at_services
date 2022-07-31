@@ -72,6 +72,23 @@ class AtDaemonSocket {
 
   Future<void> listen() async {
     atDaemonLogger.info('AtDaemonSocket: listening');
+    Future.delayed(Duration(milliseconds: 1), () async {
+      dynamic result;
+
+      while (true) {
+        try {
+          result = await _channel.streamQueue.next;
+        } catch (e, st) {
+          atDaemonLogger.severe('While waiting for response, caught exception $e - stackTrace $st');
+        }
+
+        try {
+          socketChannel.sink.add(result);
+        } catch (e, st) {
+          atDaemonLogger.severe('While sending response to socketChannel, caught exception $e - stackTrace $st');
+        }
+      }
+    });
     while (await messages.hasNext) {
       // TODO improve this layer using existing transformers in at_client
       // Transformers first need to be decoupled from AtClient in order to use them.
@@ -89,19 +106,6 @@ class AtDaemonSocket {
 
       atDaemonLogger.info('listen() sending $action to $_channel');
       _channel.sendPort!.send(action);
-      var result;
-
-      try {
-        result = await _channel.streamQueue.next;
-      } catch (e, st) {
-        atDaemonLogger.severe('While waiting for response, caught exception $e - stackTrace $st');
-      }
-
-      try {
-        socketChannel.sink.add(result);
-      } catch (e, st) {
-        atDaemonLogger.severe('While sending response to socketChannel, caught exception $e - stackTrace $st');
-      }
     }
     // Websocket closed, closing worker
     _channel.sendPort?.send(KillAction());

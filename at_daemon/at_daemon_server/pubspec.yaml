@@ -7,7 +7,7 @@ environment:
   sdk: '>=2.17.6 <3.0.0'
 
 dependencies:
-  at_client: ^3.0.30
+  at_client: ^3.0.32
   at_daemon_core: ^1.0.0
   at_server_spec: ^3.0.9
   shelf: ^1.3.1
