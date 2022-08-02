@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export ROOT_DOMAIN=vip.ve.atsign.zone
+export ROOT_DOMAIN=proxy:vip.ve.atsign.zone
 export ROOT_PORT=641
 
 AT_DAEMON_CLI_DIR=`dirname $0`
