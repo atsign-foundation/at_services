@@ -1,0 +1,20 @@
+#!/bin/bash
+
+export ROOT_DOMAIN=vip.ve.atsign.zone
+export ROOT_PORT=641
+
+AT_DAEMON_CLI_DIR=`dirname $0`
+pushd $AT_DAEMON_CLI_DIR > /dev/null
+AT_DAEMON_CLI_DIR=`pwd`
+popd > /dev/null
+
+AT_DAEMON_DIR=`dirname $AT_DAEMON_CLI_DIR`
+AT_SERVICES_DIR=`dirname $AT_DAEMON_DIR`
+
+echo "If not already running, start the local proxy on port $ROOT_PORT as follows"
+echo "    cd $AT_SERVICES_DIR/at_secondary_proxy"
+echo "    dart bin/main.dart root.atsign.org 641"
+echo
+echo "Starting at_daemon_cli"
+dart $AT_DAEMON_CLI_DIR/bin/at_daemon_cli.dart
+

@@ -28,8 +28,31 @@ abstract class Worker {
   FutureOr<void> listen();
 }
 
+String _rootDomain = 'root.atsign.org';
+int _rootPort = 64;
+bool _rootFetchedFromEnv = false;
+
+void _fetchRootDomainAndPort() {
+  if (_rootFetchedFromEnv) {
+    return;
+  }
+
+  var rootDomainEnv = Platform.environment['ROOT_DOMAIN'];
+  if (rootDomainEnv != null) {
+    _rootDomain = rootDomainEnv;
+  }
+  var rootPortEnv = Platform.environment['ROOT_PORT'];
+  if (rootPortEnv != null) {
+    _rootPort = int.parse(rootPortEnv);
+  }
+
+  _rootFetchedFromEnv = true;
+}
+
 class AtClientWorker extends Worker {
-  AtClientWorker(super.port);
+  AtClientWorker(super.port) {
+    _fetchRootDomainAndPort();
+  }
 
   @override
   Future<void> listen() async {
@@ -50,7 +73,8 @@ class AtClientWorker extends Worker {
             ..hiveStoragePath = '$storage/hive'
             ..downloadPath = '$storage/files'
             ..commitLogPath = '$storage/commitLog'
-            ..rootDomain = 'root.atsign.org'
+            ..rootDomain = _rootDomain
+            ..rootPort = _rootPort
             ..atKeysFilePath = event.keyFilePath;
 
           AtOnboardingService onboardingService = AtOnboardingServiceImpl(event.atSign, atOnboardingPreference);
@@ -78,7 +102,9 @@ class SessionWorker extends Worker {
   late AtClient atClient;
   late Stream<AtNotification> notifications;
 
-  SessionWorker(super.port, this.atSign);
+  SessionWorker(super.port, this.atSign) {
+    _fetchRootDomainAndPort();
+  }
 
   @override
   Future<void> listen() async {
@@ -144,7 +170,8 @@ class SessionWorker extends Worker {
       ..hiveStoragePath = '$storage/hive'
       ..downloadPath = '$storage/files'
       ..commitLogPath = '$storage/commitLog'
-      ..rootDomain = 'root.atsign.org'
+      ..rootDomain = _rootDomain
+      ..rootPort = _rootPort
       ..namespace = 'at_daemon'
       ..atKeysFilePath = keysFilePath;
 
