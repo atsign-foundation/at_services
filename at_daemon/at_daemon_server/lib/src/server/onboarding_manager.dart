@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:at_daemon_core/at_daemon_core.dart';
 import 'package:at_daemon_server/at_daemon_server.dart';
 import 'package:path/path.dart' show basename;
 

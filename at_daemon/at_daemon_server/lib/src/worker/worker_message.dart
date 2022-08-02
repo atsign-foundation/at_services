@@ -3,10 +3,16 @@ part of 'worker.dart';
 abstract class WorkerMessage {}
 
 abstract class WorkerAction implements WorkerMessage {}
+abstract class WorkerActionResult implements WorkerMessage {}
 
-abstract class WorkerVerb implements WorkerAction {}
-
-abstract class WorkerResult implements WorkerMessage {}
+abstract class WorkerVerb implements WorkerAction {
+  final String? requestId;
+  WorkerVerb(this.requestId);
+}
+abstract class WorkerVerbResult implements WorkerActionResult {
+  final String? requestId;
+  WorkerVerbResult(this.requestId);
+}
 
 // Kill
 class KillAction implements WorkerAction {
@@ -20,7 +26,7 @@ class KillAction implements WorkerAction {
   }
 }
 
-class Killed implements WorkerResult {}
+class Killed implements WorkerActionResult {}
 
 // Onboard
 class OnboardAction implements WorkerAction {
@@ -29,40 +35,11 @@ class OnboardAction implements WorkerAction {
   final String logLevel;
   const OnboardAction({required this.atSign, required this.keyFilePath, String? logLevel})
       : logLevel = logLevel ?? 'info';
-
-  @override
-  String toString() {
-    return 'OnboardAction{atSign: $atSign, keyFilePath: $keyFilePath, logLevel: $logLevel}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is OnboardAction &&
-          runtimeType == other.runtimeType &&
-          atSign == other.atSign &&
-          keyFilePath == other.keyFilePath &&
-          logLevel == other.logLevel;
-
-  @override
-  int get hashCode => atSign.hashCode ^ keyFilePath.hashCode ^ logLevel.hashCode;
 }
 
-class Onboarded implements WorkerResult {
+class Onboarded implements WorkerActionResult {
   final bool isOnboarded;
   const Onboarded(this.isOnboarded);
-
-  @override
-  String toString() {
-    return 'Onboarded{isOnboarded: $isOnboarded}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is Onboarded && runtimeType == other.runtimeType && isOnboarded == other.isOnboarded;
-
-  @override
-  int get hashCode => isOnboarded.hashCode;
 }
 
 // Create Session
@@ -70,18 +47,6 @@ class CreateSessionAction implements WorkerAction {
   final SendPort sendPort;
   final String atSign;
   const CreateSessionAction(this.sendPort, this.atSign);
-
-  @override
-  String toString() {
-    return 'CreateSessionAction{sendPort: $sendPort}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) || other is CreateSessionAction && runtimeType == other.runtimeType && sendPort == other.sendPort;
-
-  @override
-  int get hashCode => sendPort.hashCode;
 }
 
 // Echo a message
@@ -89,160 +54,106 @@ class EchoAction implements WorkerAction {
   final String atSign;
   final Iterable<String> message;
   const EchoAction(this.atSign, this.message);
-
-  @override
-  String toString() {
-    return 'EchoAction{atSign: $atSign, message: $message}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is EchoAction && runtimeType == other.runtimeType && atSign == other.atSign && message == other.message;
-
-  @override
-  int get hashCode => atSign.hashCode ^ message.hashCode;
 }
 
 // VERBS
-class GetVerb implements WorkerVerb {
+class GetVerb extends WorkerVerb {
   final AtKey key;
   final bool isDedicated;
-  const GetVerb(this.key, {this.isDedicated = false});
-
-  @override
-  String toString() {
-    return 'GetVerb{key: $key, isDedicated: $isDedicated}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is GetVerb && runtimeType == other.runtimeType && key == other.key && isDedicated == other.isDedicated;
-
-  @override
-  int get hashCode => key.hashCode ^ isDedicated.hashCode;
+  GetVerb(super.requestId, this.key, {this.isDedicated = false});
 }
 
-class GetResult implements WorkerResult {
+class GetResult extends WorkerVerbResult {
   final String? value;
   Exception? exception;
 
-  GetResult({this.value, this.exception});
+  GetResult(super.requestId, {this.value, this.exception});
 
   Map toJson() => {
+    'requestId': requestId,
     'value': value,
     'exception': exception?.toString()
   };
-
-  @override
-  String toString() {
-    return 'GetResult{value: $value, exception: $exception}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is GetResult && runtimeType == other.runtimeType && value == other.value && exception == other.exception;
-
-  @override
-  int get hashCode => value.hashCode ^ exception.hashCode;
 }
 
-class PutVerb implements WorkerVerb {
+class PutVerb extends WorkerVerb {
   final AtKey key;
   final String? value;
   final bool isDedicated;
-  const PutVerb(this.key, this.value, {this.isDedicated = false});
-
-  @override
-  String toString() {
-    return 'PutVerb{key: $key, value: $value, isDedicated: $isDedicated}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PutVerb && runtimeType == other.runtimeType && key == other.key && value == other.value && isDedicated == other.isDedicated;
-
-  @override
-  int get hashCode => key.hashCode ^ value.hashCode ^ isDedicated.hashCode;
+  PutVerb(super.requestId, this.key, this.value, {this.isDedicated = false});
 }
 
-class PutResult implements WorkerResult {
+class PutResult extends WorkerVerbResult {
   bool? result;
   Exception? exception;
 
-  PutResult({this.result, this.exception});
+  PutResult(super.requestId, {this.result, this.exception});
 
   Map toJson() => {
+    'requestId': requestId,
     'result': result,
     'exception': exception?.toString()
   };
-
-  @override
-  String toString() {
-    return 'PutResult{result: $result, exception: $exception}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is PutResult && runtimeType == other.runtimeType && result == other.result && exception == other.exception;
-
-  @override
-  int get hashCode => result.hashCode ^ exception.hashCode;
 }
 
-class GetKeysVerb implements WorkerVerb {
+class GetKeysVerb extends WorkerVerb {
   final String? regex;
   final String? sharedBy;
   final String? sharedWith;
   final bool showHiddenKeys;
   final bool isDedicated;
-  GetKeysVerb({this.regex, this.sharedBy, this.sharedWith, this.showHiddenKeys = false, this.isDedicated = false});
-
-  @override
-  String toString() {
-    return 'GetKeysVerb{regex: $regex, sharedBy: $sharedBy, sharedWith: $sharedWith, showHiddenKeys: $showHiddenKeys, isDedicated: $isDedicated}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is GetKeysVerb &&
-          runtimeType == other.runtimeType &&
-          regex == other.regex &&
-          sharedBy == other.sharedBy &&
-          sharedWith == other.sharedWith &&
-          showHiddenKeys == other.showHiddenKeys &&
-          isDedicated == other.isDedicated;
-
-  @override
-  int get hashCode => regex.hashCode ^ sharedBy.hashCode ^ sharedWith.hashCode ^ showHiddenKeys.hashCode ^ isDedicated.hashCode;
+  GetKeysVerb(super.requestId, {this.regex, this.sharedBy, this.sharedWith, this.showHiddenKeys = false, this.isDedicated = false});
 }
 
-class GetKeysResult implements WorkerResult {
+class GetKeysResult extends WorkerVerbResult {
   List<String>? keys;
   Exception? exception;
 
-  GetKeysResult({this.keys, this.exception});
+  GetKeysResult(super.requestId, {this.keys, this.exception});
 
   Map toJson() => {
+    'requestId': requestId,
     'keys': keys,
     'exception': exception?.toString()
   };
-
-  @override
-  String toString() {
-    return 'GetKeysResult{keys: $keys, exception: $exception}';
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is GetKeysResult && runtimeType == other.runtimeType && keys == other.keys && exception == other.exception;
-
-  @override
-  int get hashCode => keys.hashCode ^ exception.hashCode;
 }
+
+class NotifyUpdateVerb extends WorkerVerb {
+  final AtKey key;
+  dynamic value;
+
+  NotifyUpdateVerb(super.requestId, this.key, this.value);
+}
+
+class NotifyUpdateResult extends WorkerVerbResult {
+  String? notificationID;
+  Exception? exception;
+
+  NotifyUpdateResult(super.requestId, {this.notificationID, this.exception});
+
+  Map toJson() => {
+    'requestId': requestId,
+    'notificationID': notificationID,
+    'exception': exception?.toString()
+  };
+}
+
+class NotifyDeleteVerb extends WorkerVerb {
+  final AtKey key;
+
+  NotifyDeleteVerb(super.requestId, this.key);
+}
+
+class NotifyDeleteResult extends WorkerVerbResult {
+  String? notificationID;
+  Exception? exception;
+
+  NotifyDeleteResult(super.requestId, {this.notificationID, this.exception});
+
+  Map toJson() => {
+    'requestId': requestId,
+    'notificationID': notificationID,
+    'exception': exception?.toString()
+  };
+}
+

@@ -115,24 +115,27 @@ class SessionWorker extends Worker {
       if (event is KillAction) {
         channel.receivePort.close();
         channel.sendPort!.send(Killed());
+
       } else if (event is GetVerb) {
         GetResult getResult;
         try {
           AtValue value = await atClient.get(event.key, isDedicated: event.isDedicated);
-          getResult = GetResult(value: value.value);
+          getResult = GetResult(event.requestId, value: value.value);
         } on Exception catch (e) {
-          getResult = GetResult(exception: e);
+          getResult = GetResult(event.requestId, exception: e);
         }
         channel.sendPort!.send(jsonEncode(getResult));
+
       } else if (event is PutVerb) {
         PutResult putResult;
         try {
           bool result = await atClient.put(event.key, event.value, isDedicated: event.isDedicated);
-          putResult = PutResult(result:result);
+          putResult = PutResult(event.requestId, result:result);
         } on Exception catch (e) {
-          putResult = PutResult(exception: e);
+          putResult = PutResult(event.requestId, exception: e);
         }
         channel.sendPort!.send(jsonEncode(putResult));
+
       } else if (event is GetKeysVerb) {
         GetKeysResult getKeysResult;
         try {
@@ -143,11 +146,39 @@ class SessionWorker extends Worker {
             showHiddenKeys: event.showHiddenKeys,
             //isDedicated: event.isDedicated,
           );
-          getKeysResult = GetKeysResult(keys: keys);
+          getKeysResult = GetKeysResult(event.requestId, keys: keys);
         } on Exception catch (e) {
-          getKeysResult = GetKeysResult(exception: e);
+          getKeysResult = GetKeysResult(event.requestId, exception: e);
         }
         channel.sendPort!.send(jsonEncode(getKeysResult));
+
+      } else if (event is NotifyUpdateVerb) {
+        NotifyUpdateResult notifyUpdateResult;
+        try {
+          NotificationResult notificationResult = await AtClientManager.getInstance().notificationService
+              .notify(NotificationParams.forUpdate(event.key, value: event.value), waitForFinalDeliveryStatus: false);
+          notifyUpdateResult = NotifyUpdateResult(
+              event.requestId,
+              notificationID: notificationResult.notificationID,
+            exception: notificationResult.atClientException);
+        } on Exception catch (e) {
+            notifyUpdateResult = NotifyUpdateResult(event.requestId, exception: e);
+        }
+        channel.sendPort!.send(jsonEncode(notifyUpdateResult));
+
+      } else if (event is NotifyDeleteVerb) {
+        NotifyDeleteResult notifyDeleteResult;
+        try {
+          NotificationResult notificationResult = await AtClientManager.getInstance().notificationService
+              .notify(NotificationParams.forDelete(event.key), waitForFinalDeliveryStatus: false);
+          notifyDeleteResult = NotifyDeleteResult(
+              event.requestId,
+              notificationID: notificationResult.notificationID,
+            exception: notificationResult.atClientException);
+        } on Exception catch (e) {
+          notifyDeleteResult = NotifyDeleteResult(event.requestId, exception: e);
+        }
+        channel.sendPort!.send(jsonEncode(notifyDeleteResult));
       }
     });
   }
@@ -185,7 +216,11 @@ class SessionWorker extends Worker {
 
     notifications = AtClientManager.getInstance().notificationService.subscribe(regex: '.*', shouldDecrypt: true);
     notifications.listen((AtNotification event) {
-      channel.sendPort!.send(jsonEncode(event));
+      if (event.id == '-1' && event.key.startsWith('statsNotification.')) {
+        return;
+      } else {
+        channel.sendPort!.send(jsonEncode(event));
+      }
     });
 
     _initialized = true;

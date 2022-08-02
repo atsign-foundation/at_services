@@ -20,7 +20,7 @@ class GetRequestHandler extends PayloadHandler<GetRequest> {
 
   @override
   WorkerAction getAction(GetRequest payload) {
-    return GetVerb(AtKey.fromString(payload.key), isDedicated: payload.isDedicated);
+    return GetVerb(payload.requestId, AtKey.fromString(payload.key), isDedicated: payload.isDedicated);
   }
 
   @override
@@ -37,7 +37,7 @@ class PutRequestHandler extends PayloadHandler<PutRequest> {
 
   @override
   WorkerAction getAction(PutRequest payload) {
-    return PutVerb(AtKey.fromString(payload.key), payload.value, isDedicated: payload.isDedicated);
+    return PutVerb(payload.requestId, AtKey.fromString(payload.key), payload.value, isDedicated: payload.isDedicated);
   }
 
   @override
@@ -55,6 +55,7 @@ class GetKeysRequestHandler extends PayloadHandler<GetKeysRequest> {
   @override
   WorkerAction getAction(GetKeysRequest payload) {
     return GetKeysVerb(
+      payload.requestId,
       regex: payload.regex,
       sharedBy: payload.sharedBy,
       sharedWith: payload.sharedWith,
@@ -68,3 +69,38 @@ class GetKeysRequestHandler extends PayloadHandler<GetKeysRequest> {
     return GetKeysRequest.fromJson(jsonDecode(payload));
   }
 }
+
+class NotifyUpdateRequestHandler extends PayloadHandler<NotifyUpdateRequest> {
+  @override
+  bool accept(String payload) {
+    return jsonDecode(payload)['type'] == NotifyUpdateRequest.type;
+  }
+
+  @override
+  WorkerAction getAction(NotifyUpdateRequest payload) {
+    return NotifyUpdateVerb(payload.requestId, AtKey.fromString(payload.key), payload.value);
+  }
+
+  @override
+  NotifyUpdateRequest transformPayload(String payload) {
+    return NotifyUpdateRequest.fromJson(jsonDecode(payload));
+  }
+}
+
+class NotifyDeleteRequestHandler extends PayloadHandler<NotifyDeleteRequest> {
+  @override
+  bool accept(String payload) {
+    return jsonDecode(payload)['type'] == NotifyDeleteRequest.type;
+  }
+
+  @override
+  WorkerAction getAction(NotifyDeleteRequest payload) {
+    return NotifyDeleteVerb(payload.requestId, AtKey.fromString(payload.key));
+  }
+
+  @override
+  NotifyDeleteRequest transformPayload(String payload) {
+    return NotifyDeleteRequest.fromJson(jsonDecode(payload));
+  }
+}
+

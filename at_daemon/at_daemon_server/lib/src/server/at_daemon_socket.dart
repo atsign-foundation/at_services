@@ -97,8 +97,14 @@ class AtDaemonSocket {
 
       PayloadHandler? handler = PayloadManager().getPayloadHandler(payload);
 
+      Map decodedPayload = {'requestId':null};
+      try {
+        decodedPayload = jsonDecode(payload);
+      // ignore: empty_catches, unused_catch_clause
+      } on Exception catch (e) {}
+
       if (handler == null) {
-        socketChannel.sink.add(jsonEncode(UnknownCommandResponse().toJson()));
+        socketChannel.sink.add(jsonEncode(UnknownCommandResponse(decodedPayload['requestId']).toJson()));
         continue;
       }
 

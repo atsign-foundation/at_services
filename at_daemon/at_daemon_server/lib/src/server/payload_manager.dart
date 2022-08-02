@@ -27,5 +27,7 @@ class PayloadManager {
     _payloadHandlers.add(GetRequestHandler());
     _payloadHandlers.add(PutRequestHandler());
     _payloadHandlers.add(GetKeysRequestHandler());
+    _payloadHandlers.add(NotifyUpdateRequestHandler());
+    _payloadHandlers.add(NotifyDeleteRequestHandler());
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:at_daemon_core/at_daemon_core.dart';
 import 'package:at_daemon_server/src/util/exceptions.dart';
 import 'package:at_daemon_server/src/util/path_provider.dart';
 import 'package:json_annotation/json_annotation.dart';
