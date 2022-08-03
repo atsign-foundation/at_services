@@ -61,6 +61,11 @@ class GetVerb extends WorkerVerb {
   final AtKey key;
   final bool isDedicated;
   GetVerb(super.requestId, this.key, {this.isDedicated = false});
+
+  @override
+  String toString() {
+    return 'GetVerb{key: $key, isDedicated: $isDedicated}';
+  }
 }
 
 class GetResult extends WorkerVerbResult {
@@ -74,6 +79,11 @@ class GetResult extends WorkerVerbResult {
     'value': value,
     'exception': exception?.toString()
   };
+
+  @override
+  String toString() {
+    return 'GetResult{value: $value, exception: $exception}';
+  }
 }
 
 class PutVerb extends WorkerVerb {
@@ -81,6 +91,11 @@ class PutVerb extends WorkerVerb {
   final String? value;
   final bool isDedicated;
   PutVerb(super.requestId, this.key, this.value, {this.isDedicated = false});
+
+  @override
+  String toString() {
+    return 'PutVerb{key: $key, value: $value, isDedicated: $isDedicated}';
+  }
 }
 
 class PutResult extends WorkerVerbResult {
@@ -94,6 +109,11 @@ class PutResult extends WorkerVerbResult {
     'result': result,
     'exception': exception?.toString()
   };
+
+  @override
+  String toString() {
+    return 'PutResult{result: $result, exception: $exception}';
+  }
 }
 
 class GetKeysVerb extends WorkerVerb {
@@ -103,6 +123,11 @@ class GetKeysVerb extends WorkerVerb {
   final bool showHiddenKeys;
   final bool isDedicated;
   GetKeysVerb(super.requestId, {this.regex, this.sharedBy, this.sharedWith, this.showHiddenKeys = false, this.isDedicated = false});
+
+  @override
+  String toString() {
+    return 'GetKeysVerb{regex: $regex, sharedBy: $sharedBy, sharedWith: $sharedWith, showHiddenKeys: $showHiddenKeys, isDedicated: $isDedicated}';
+  }
 }
 
 class GetKeysResult extends WorkerVerbResult {
@@ -116,6 +141,11 @@ class GetKeysResult extends WorkerVerbResult {
     'keys': keys,
     'exception': exception?.toString()
   };
+
+  @override
+  String toString() {
+    return 'GetKeysResult{keys: $keys, exception: $exception}';
+  }
 }
 
 class NotifyUpdateVerb extends WorkerVerb {
@@ -123,6 +153,11 @@ class NotifyUpdateVerb extends WorkerVerb {
   dynamic value;
 
   NotifyUpdateVerb(super.requestId, this.key, this.value);
+
+  @override
+  String toString() {
+    return 'NotifyUpdateVerb{key: $key, value: $value}';
+  }
 }
 
 class NotifyUpdateResult extends WorkerVerbResult {
@@ -136,12 +171,22 @@ class NotifyUpdateResult extends WorkerVerbResult {
     'notificationID': notificationID,
     'exception': exception?.toString()
   };
+
+  @override
+  String toString() {
+    return 'NotifyUpdateResult{notificationID: $notificationID, exception: $exception}';
+  }
 }
 
 class NotifyDeleteVerb extends WorkerVerb {
   final AtKey key;
 
   NotifyDeleteVerb(super.requestId, this.key);
+
+  @override
+  String toString() {
+    return 'NotifyDeleteVerb{key: $key}';
+  }
 }
 
 class NotifyDeleteResult extends WorkerVerbResult {
@@ -155,5 +200,10 @@ class NotifyDeleteResult extends WorkerVerbResult {
     'notificationID': notificationID,
     'exception': exception?.toString()
   };
+
+  @override
+  String toString() {
+    return 'NotifyDeleteResult{notificationID: $notificationID, exception: $exception}';
+  }
 }
 
