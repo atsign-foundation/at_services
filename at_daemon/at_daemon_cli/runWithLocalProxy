@@ -13,7 +13,8 @@ AT_SERVICES_DIR=`dirname $AT_DAEMON_DIR`
 
 echo "If not already running, start the local proxy on port $ROOT_PORT as follows"
 echo "    cd $AT_SERVICES_DIR/at_secondary_proxy"
-echo "    dart bin/main.dart root.atsign.org 641"
+echo "    dart bin/main.dart root.atsign.org 641 >> proxy.log 2>&1 &"
+echo "    tail -f proxy.log"
 echo
 echo "Starting at_daemon_cli"
 dart $AT_DAEMON_CLI_DIR/bin/at_daemon_cli.dart
