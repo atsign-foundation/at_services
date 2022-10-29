@@ -1,4 +1,0 @@
-name: at_daemon
-
-packages:
-  - at_daemon*/*
