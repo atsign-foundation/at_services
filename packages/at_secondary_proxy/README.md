@@ -21,14 +21,13 @@ can connect to using an allow-list or block-list or both
 * Connecting from an AtClient
   * The AtClient libraries allow you to set rootDomain and rootPort. Usually these are left at
     the default values of `root.atsign.org` and `64` respectively.
-  * By convention, if you set rootDomain to 'proxy:<proxy domain>', then when your client looks up
+  * By convention, if you set rootDomain to `proxy:<proxy domain>`, then when your client looks up
     the address of an atSign's remote secondary, then rather than getting the actual secondary
-    address, it will receive <proxy domain>:<rootPort> instead
+    address, it will receive `<proxy domain>:<rootPort>` instead
   * So ... if for example you are running the proxy locally as outlined above, then you will need
     to set rootDomain and rootPort in your client code to `proxy:vip.ve.atsign.zone` and `8443`
     respectively.
-  * NB: As of today July 7, this convention is honoured by the Java libs but not yet by the published
-    Dart libs. However, the convention **_is_** honoured by [this branch of the at_lookup repo](https://github.com/atsign-foundation/at_libraries/tree/gkc_add_reverse_proxy_support_to_find_secondary)
+  * As of July 23, this convention is honoured by both the Dart and Java atClient SDKs
 
 ### Contributions welcome!
 
@@ -38,5 +37,7 @@ All of our software is open with intent. We welcome contributions - we want pull
 to hear about issues. See also [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## What's here / changelog
+### Jul 07 2022
+* Updated README
 ### May 21 2022
-Initial version of at_secondary_proxy
+* Initial version of at_secondary_proxy
