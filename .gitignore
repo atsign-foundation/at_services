@@ -1,4 +1,12 @@
 # See https://www.dartlang.org/guides/libraries/private-files
+.DS_Store
+
+# IntelliJ
+.idea
+*.iml
+
+# Visual Studio Code
+.vscode
 
 # Files and directories created by pub
 .dart_tool/
