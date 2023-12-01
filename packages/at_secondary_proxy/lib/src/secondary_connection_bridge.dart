@@ -54,7 +54,7 @@ class SecondaryConnectionBridge {
           }
 
           // We've got a 'from:' command - let's get the atSign
-          _logger.info('Got from command $command');
+          _logger.info('Got "from" command: $command');
           _atSign = command.split(":")[1];
           _logger = AtSignLogger('SecondaryConnectionBridge $_atSign');
 
@@ -95,8 +95,6 @@ class SecondaryConnectionBridge {
         }
         break;
       case BridgeState.open:
-        var decoded = utf8.decode(data);
-        _logger.info("From Client to Secondary : decoded to '$decoded'");
         _secondarySocket.add(data);
         await (_secondarySocket.flush());
         break;
@@ -110,15 +108,12 @@ class SecondaryConnectionBridge {
   }
 
   Future<void> _secondaryOnData(data) async {
-    _logger.info('_secondaryOnData(${utf8.decode(data)}');
     switch (_state) {
       case BridgeState.opening:
         // Should not be possible
         _logger.severe("_serverMessageHandler called while BridgeState is $_state");
         break;
       case BridgeState.open:
-        var decoded = utf8.decode(data);
-        _logger.info("From Secondary to Client : decoded to '$decoded'");
         _clientSocket.add(data);
         await (_clientSocket.flush());
         break;
