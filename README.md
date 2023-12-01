@@ -3,7 +3,7 @@
 # The atPlatform ancillary services
 
 This repo is intended for packages which complement the core atPlatform, the first of which is
-* **_[at_secondary_proxy](at_secondary_proxy/README.md)_** which acts as a TCP reverse proxy for connections from clients to
+* **_[at_secondary_proxy](packages/at_secondary_proxy/README.md)_** which acts as a TCP reverse proxy for connections from clients to
 secondary servers, where the clients are limited to standard ports
 
 ### Contributions welcome!
