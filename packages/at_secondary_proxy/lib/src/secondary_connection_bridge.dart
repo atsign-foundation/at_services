@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:at_commons/at_commons.dart';
@@ -35,7 +36,7 @@ class SecondaryConnectionBridge {
       case BridgeState.opening:
         // Expecting to receive from:<atSign>\n
         if (_buffer.isOverFlow(data)) {
-          _badOpening('Too much');
+          await _badOpening('Too much');
           return;
         }
 
@@ -48,12 +49,12 @@ class SecondaryConnectionBridge {
           // If we get to \n and the command doesn't start with "from:" then log something and close this bridge
           if (! command.startsWith("from:")) {
             _logger.info('Unexpected command: $command');
-            _badOpening("Bad form");
+            await _badOpening("Bad form");
             return;
           }
 
           // We've got a 'from:' command - let's get the atSign
-          _logger.info('Got from command $command');
+          _logger.info('Got "from" command: $command');
           _atSign = command.split(":")[1];
           _logger = AtSignLogger('SecondaryConnectionBridge $_atSign');
 
@@ -63,7 +64,7 @@ class SecondaryConnectionBridge {
             _logger.info("Looking up secondary for $_atSign");
             secondaryAddress = await _secondaryAddressFinder.findSecondary(_atSign);
           } catch (e) {
-            _badOpening(e.toString());
+            await _badOpening(e.toString());
             return;
           }
 
@@ -72,12 +73,12 @@ class SecondaryConnectionBridge {
             _logger.info("Connecting to $secondaryAddress");
             _secondarySocket = await SecureSocket.connect(secondaryAddress.host, secondaryAddress.port);
           } catch (e) {
-            _badOpening(e.toString());
+            await _badOpening(e.toString());
             return;
           }
           _logger.info("Setting up secondary socket listen");
           _secondarySocket.listen(_secondaryOnData, onDone: _secondaryOnDone, onError: _secondaryOnError);
-          _secondarySocket.done.onError((error, stackTrace) => (_clientOnError(error)));
+          unawaited(_secondarySocket.done.onError((error, stackTrace) => (_clientOnError(error))));
 
           try {
             _logger.info("Writing command $command plus \\n");
@@ -87,15 +88,13 @@ class SecondaryConnectionBridge {
             _logger.info("Bridge is open");
             _state = BridgeState.open;
           } catch (e) {
-            _badOpening(e.toString());
+            await _badOpening(e.toString());
             _destroySecondarySocket();
             return;
           }
         }
         break;
       case BridgeState.open:
-        var decoded = utf8.decode(data);
-        _logger.info("From Client to Secondary : decoded to '$decoded'");
         _secondarySocket.add(data);
         await (_secondarySocket.flush());
         break;
@@ -109,15 +108,12 @@ class SecondaryConnectionBridge {
   }
 
   Future<void> _secondaryOnData(data) async {
-    _logger.info('_secondaryOnData(${utf8.decode(data)}');
     switch (_state) {
       case BridgeState.opening:
         // Should not be possible
         _logger.severe("_serverMessageHandler called while BridgeState is $_state");
         break;
       case BridgeState.open:
-        var decoded = utf8.decode(data);
-        _logger.info("From Secondary to Client : decoded to '$decoded'");
         _clientSocket.add(data);
         await (_clientSocket.flush());
         break;
