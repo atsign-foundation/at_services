@@ -7,7 +7,7 @@ import 'secondary_connection_bridge.dart';
 class SecondaryProxyServer {
   static final String _certificateChainLocation = 'certs/fullchain.pem';
   static final String _privateKeyLocation = 'certs/privkey.pem';
-  static final String _trustedCertificateLocation = '/etc/cacert/cacert.pem';
+  static final String _trustedCertificateLocation = 'certs/cacert.pem';
 
   static final logger = AtSignLogger('AtSecondaryProxy');
 
