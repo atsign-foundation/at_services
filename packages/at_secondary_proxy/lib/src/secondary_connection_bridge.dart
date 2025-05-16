@@ -162,7 +162,7 @@ class SecondaryConnectionBridge {
   Future<void> _writeStringAndClose(String msg) async {
     _state = BridgeState.closing;
 
-    _logger.info("_badOpening : $msg");
+    _logger.info("_writeStringAndClose : $msg");
 
     try {
       _clientSocket.write('$msg\n');

@@ -11,7 +11,8 @@ class SecondaryProxyServer {
 
   static final logger = AtSignLogger('AtSecondaryProxy');
 
-  final int port;
+  final int proxyPort;
+  final int bindPort;
   final String proxyUrl;
   final SecondaryAddressFinder secondaryAddressFinder;
 
@@ -20,7 +21,7 @@ class SecondaryProxyServer {
   bool _running = false;
   bool get running => _running;
 
-  SecondaryProxyServer(this.proxyUrl, this.port, this.secondaryAddressFinder);
+  SecondaryProxyServer(this.proxyUrl, this.proxyPort, this.bindPort, this.secondaryAddressFinder);
 
   void startServing() {
     var secCon = SecurityContext();
@@ -29,9 +30,9 @@ class SecondaryProxyServer {
     secCon.usePrivateKey(_privateKeyLocation);
     secCon.setTrustedCertificates(_trustedCertificateLocation);
 
-    SecureServerSocket.bind(InternetAddress.anyIPv4, port, secCon, requestClientCertificate: true)
+    SecureServerSocket.bind(InternetAddress.anyIPv4, bindPort, secCon, requestClientCertificate: true)
         .then((SecureServerSocket secureServerSocket) {
-      logger.info('Secure Socket listening on port $port');
+      logger.info('Secure Socket listening on port $bindPort');
       _secureServerSocket = secureServerSocket;
       _listen(_secureServerSocket);
       _running = true;
@@ -48,7 +49,7 @@ class SecondaryProxyServer {
       }
       logger.info('New client socket connection with peerCertificate : ${clientSocket.peerCertificate}');
 
-      SecondaryConnectionBridge(proxyUrl,clientSocket, secondaryAddressFinder);
+      SecondaryConnectionBridge(proxyUrl, clientSocket, secondaryAddressFinder);
     }), onError: (error) {
       logger.warning('listen.onError : $error');
     });
