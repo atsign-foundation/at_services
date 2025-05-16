@@ -12,14 +12,15 @@ class SecondaryProxyServer {
   static final logger = AtSignLogger('AtSecondaryProxy');
 
   final int port;
+  final String proxyUrl;
   final SecondaryAddressFinder secondaryAddressFinder;
 
   late SecureServerSocket _secureServerSocket;
 
   bool _running = false;
   bool get running => _running;
-  
-  SecondaryProxyServer(this.port, this.secondaryAddressFinder);
+
+  SecondaryProxyServer(this.proxyUrl, this.port, this.secondaryAddressFinder);
 
   void startServing() {
     var secCon = SecurityContext();
@@ -28,30 +29,26 @@ class SecondaryProxyServer {
     secCon.usePrivateKey(_privateKeyLocation);
     secCon.setTrustedCertificates(_trustedCertificateLocation);
 
-    SecureServerSocket.bind(
-        InternetAddress.anyIPv4, port, secCon,
-        requestClientCertificate: true)
+    SecureServerSocket.bind(InternetAddress.anyIPv4, port, secCon, requestClientCertificate: true)
         .then((SecureServerSocket secureServerSocket) {
       logger.info('Secure Socket listening on port $port');
       _secureServerSocket = secureServerSocket;
       _listen(_secureServerSocket);
       _running = true;
     });
-
   }
-  void stopServing() {
 
-  }
+  void stopServing() {}
 
   void _listen(secureServerSocket) {
     secureServerSocket.listen(((clientSocket) {
-      if (! _running) {
+      if (!_running) {
         logger.info('Server cannot accept connections now.');
         return;
       }
       logger.info('New client socket connection with peerCertificate : ${clientSocket.peerCertificate}');
 
-      SecondaryConnectionBridge(clientSocket, secondaryAddressFinder);
+      SecondaryConnectionBridge(proxyUrl,clientSocket, secondaryAddressFinder);
     }), onError: (error) {
       logger.warning('listen.onError : $error');
     });
