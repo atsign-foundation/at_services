@@ -34,6 +34,12 @@ can connect to using an allow-list or block-list or both
   * The other option is to set the root domain to the domain name of the proxy using the ``--root-domain`` flag of cli tools, this uses port 64. The proxy will act as a root directory but send all quiries to the proxy until a `from:` verb is received.
   * As of July 23, this convention is honoured by both the Dart and Java atClient SDKs
 
+### Production usage
+  * The use of Docker swarm means several instances of the container can be running allowing updates without impact to service.
+  * The certificates need to be valid and kept up to date, this can be achieved with `certbot` from LetsEncrypt.
+  * The containers will need to be cycled once in a while to pick up the new certs.
+  * Exmaples of the cron entry and docker services stack can be found in the tools directory.
+
 ### Contributions welcome!
 
 [![gitHub license](https://img.shields.io/badge/license-BSD3-blue.svg)](../LICENSE)

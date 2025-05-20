@@ -1,0 +1,1 @@
+30 5 * * 1 docker service update --force proxyserver_at_proxyserver
