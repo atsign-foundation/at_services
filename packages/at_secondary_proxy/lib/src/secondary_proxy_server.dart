@@ -7,19 +7,21 @@ import 'secondary_connection_bridge.dart';
 class SecondaryProxyServer {
   static final String _certificateChainLocation = 'certs/fullchain.pem';
   static final String _privateKeyLocation = 'certs/privkey.pem';
-  static final String _trustedCertificateLocation = '/etc/cacert/cacert.pem';
+  static final String _trustedCertificateLocation = 'certs/cacert.pem';
 
   static final logger = AtSignLogger('AtSecondaryProxy');
 
-  final int port;
+  final int proxyPort;
+  final int bindPort;
+  final String proxyUrl;
   final SecondaryAddressFinder secondaryAddressFinder;
 
   late SecureServerSocket _secureServerSocket;
 
   bool _running = false;
   bool get running => _running;
-  
-  SecondaryProxyServer(this.port, this.secondaryAddressFinder);
+
+  SecondaryProxyServer(this.proxyUrl, this.proxyPort, this.bindPort, this.secondaryAddressFinder);
 
   void startServing() {
     var secCon = SecurityContext();
@@ -28,30 +30,26 @@ class SecondaryProxyServer {
     secCon.usePrivateKey(_privateKeyLocation);
     secCon.setTrustedCertificates(_trustedCertificateLocation);
 
-    SecureServerSocket.bind(
-        InternetAddress.anyIPv4, port, secCon,
-        requestClientCertificate: true)
+    SecureServerSocket.bind(InternetAddress.anyIPv4, bindPort, secCon, requestClientCertificate: true)
         .then((SecureServerSocket secureServerSocket) {
-      logger.info('Secure Socket listening on port $port');
+      logger.info('Secure Socket listening on port $bindPort');
       _secureServerSocket = secureServerSocket;
       _listen(_secureServerSocket);
       _running = true;
     });
-
   }
-  void stopServing() {
 
-  }
+  void stopServing() {}
 
   void _listen(secureServerSocket) {
     secureServerSocket.listen(((clientSocket) {
-      if (! _running) {
+      if (!_running) {
         logger.info('Server cannot accept connections now.');
         return;
       }
       logger.info('New client socket connection with peerCertificate : ${clientSocket.peerCertificate}');
 
-      SecondaryConnectionBridge(clientSocket, secondaryAddressFinder);
+      SecondaryConnectionBridge(proxyUrl, clientSocket, secondaryAddressFinder);
     }), onError: (error) {
       logger.warning('listen.onError : $error');
     });

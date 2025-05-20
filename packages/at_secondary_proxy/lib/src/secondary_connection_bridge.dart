@@ -5,11 +5,12 @@ import 'package:at_commons/at_commons.dart';
 import 'package:at_utils/at_utils.dart';
 import 'package:at_lookup/at_lookup.dart';
 
-enum BridgeState {opening, open, closing, closed}
+enum BridgeState { opening, open, closing, closed }
 
 class SecondaryConnectionBridge {
   final SecureSocket _clientSocket;
   late SecureSocket _secondarySocket;
+  final String proxyUrl;
 
   static final AtSignLogger _initialLogger = AtSignLogger('SecondaryConnectionBridge');
 
@@ -21,7 +22,7 @@ class SecondaryConnectionBridge {
 
   late String _atSign;
 
-  SecondaryConnectionBridge(this._clientSocket, this._secondaryAddressFinder) {
+  SecondaryConnectionBridge(this.proxyUrl, this._clientSocket, this._secondaryAddressFinder) {
     _clientSocket.listen(_clientOnData, onDone: _clientOnDone, onError: _clientOnError);
     _clientSocket.done.onError((error, stackTrace) => (_clientOnError(error)));
 
@@ -32,11 +33,11 @@ class SecondaryConnectionBridge {
   final _buffer = ByteBuffer(terminatingChar: '\n', capacity: 511);
 
   Future<void> _clientOnData(data) async {
-    switch(_state) {
+    switch (_state) {
       case BridgeState.opening:
         // Expecting to receive from:<atSign>\n
         if (_buffer.isOverFlow(data)) {
-          await _badOpening('Too much');
+          await _writeStringAndClose('Too much');
           return;
         }
 
@@ -47,9 +48,9 @@ class SecondaryConnectionBridge {
           var command = utf8.decode(_buffer.getData());
           command = command.trim();
           // If we get to \n and the command doesn't start with "from:" then log something and close this bridge
-          if (! command.startsWith("from:")) {
-            _logger.info('Unexpected command: $command');
-            await _badOpening("Bad form");
+          if (!command.startsWith("from:")) {
+            _logger.info('Looking up secondary for @$command');
+            await _writeStringAndClose(proxyUrl);
             return;
           }
 
@@ -64,7 +65,7 @@ class SecondaryConnectionBridge {
             _logger.info("Looking up secondary for $_atSign");
             secondaryAddress = await _secondaryAddressFinder.findSecondary(_atSign);
           } catch (e) {
-            await _badOpening(e.toString());
+            await _writeStringAndClose(e.toString());
             return;
           }
 
@@ -73,7 +74,7 @@ class SecondaryConnectionBridge {
             _logger.info("Connecting to $secondaryAddress");
             _secondarySocket = await SecureSocket.connect(secondaryAddress.host, secondaryAddress.port);
           } catch (e) {
-            await _badOpening(e.toString());
+            await _writeStringAndClose(e.toString());
             return;
           }
           _logger.info("Setting up secondary socket listen");
@@ -88,7 +89,7 @@ class SecondaryConnectionBridge {
             _logger.info("Bridge is open");
             _state = BridgeState.open;
           } catch (e) {
-            await _badOpening(e.toString());
+            await _writeStringAndClose(e.toString());
             _destroySecondarySocket();
             return;
           }
@@ -118,46 +119,50 @@ class SecondaryConnectionBridge {
         await (_clientSocket.flush());
         break;
       case BridgeState.closing:
-      // Nothing to do here
+        // Nothing to do here
         break;
       case BridgeState.closed:
-      // Nothing to do here
+        // Nothing to do here
         break;
     }
   }
 
   Future<void> _clientOnDone() async {
     _logger.info('_clientOnDone()');
-    if (_state == BridgeState.open) { // nothing to do for any other state
+    if (_state == BridgeState.open) {
+      // nothing to do for any other state
       _destroySecondaryThenClient();
     }
   }
 
   Future<void> _secondaryOnDone() async {
     _logger.info('_secondaryOnDone()');
-    if (_state == BridgeState.open) { // nothing to do for any other state
+    if (_state == BridgeState.open) {
+      // nothing to do for any other state
       _destroyClientThenSecondary();
     }
   }
 
   Future<void> _clientOnError(error) async {
     _logger.severe('_clientOnError(${error.toString()})');
-    if (_state == BridgeState.open) { // nothing to do for any other state
+    if (_state == BridgeState.open) {
+      // nothing to do for any other state
       _destroySecondaryThenClient();
     }
   }
 
   Future<void> _secondaryOnError(error) async {
     _logger.severe('_secondaryOnError(${error.toString()})');
-    if (_state == BridgeState.open) { // nothing to do for any other state
+    if (_state == BridgeState.open) {
+      // nothing to do for any other state
       _destroyClientThenSecondary();
     }
   }
 
-  Future<void> _badOpening(String msg) async {
+  Future<void> _writeStringAndClose(String msg) async {
     _state = BridgeState.closing;
 
-    _logger.info("_badOpening : $msg");
+    _logger.info("_writeStringAndClose : $msg");
 
     try {
       _clientSocket.write('$msg\n');

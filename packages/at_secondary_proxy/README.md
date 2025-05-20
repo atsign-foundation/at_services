@@ -13,11 +13,15 @@ can connect to using an allow-list or block-list or both
     This will allow you to run the proxy on your local machine, serving up SecureSockets
     for 'vip.ve.atsign.zone'
   * You need an entry like this in your local machine's 'hosts' file: `127.0.0.1 vip.ve.atsign.zone`
+  * The certs dirctory also needs to contain `cacert.pem` which contains the root CA public keys
+  * The certs directory can be remmaped if using a container using the `/atsign/certs` when using the included Dockerfile
 * Execution
-  * `bin/main.dart <domain of the atRoot server> <port for this atsign to listen on>`
+  * `bin/main.dart Usage: at_proxyserver <this proxies URL> <upstream atDirectory URL> [proxy bind port]`
   * e.g. if running on your local machine, proxying to AtSign's production root server
-     at **_root.atsign.org_**, and listening locally on port 8443
-  * `bin/main.dart root.atsign.org 8443`
+     at **_root.atsign.org_**, and listening locally on port 443
+  * `bin/main.dart vip.ve.atsign.zone:443 root.atsign.org:64`
+  * If you are running the process inside a container then you can bind the binary to a high port and have
+  the container port map to the high port using the optional proxy bind port 
 * Connecting from an AtClient
   * The AtClient libraries allow you to set rootDomain and rootPort. Usually these are left at
     the default values of `root.atsign.org` and `64` respectively.
@@ -27,7 +31,14 @@ can connect to using an allow-list or block-list or both
   * So ... if for example you are running the proxy locally as outlined above, then you will need
     to set rootDomain and rootPort in your client code to `proxy:vip.ve.atsign.zone` and `8443`
     respectively.
+  * The other option is to set the root domain to the domain name of the proxy using the ``--root-domain`` flag of cli tools, this uses port 64. The proxy will act as a root directory but send all quiries to the proxy until a `from:` verb is received.
   * As of July 23, this convention is honoured by both the Dart and Java atClient SDKs
+
+### Production usage
+  * The use of Docker swarm means several instances of the container can be running allowing updates without impact to service.
+  * The certificates need to be valid and kept up to date, this can be achieved with `certbot` from LetsEncrypt.
+  * The containers will need to be cycled once in a while to pick up the new certs.
+  * Exmaples of the cron entry and docker services stack can be found in the tools directory.
 
 ### Contributions welcome!
 
@@ -36,8 +47,5 @@ can connect to using an allow-list or block-list or both
 All of our software is open with intent. We welcome contributions - we want pull requests, and we want
 to hear about issues. See also [CONTRIBUTING.md](../CONTRIBUTING.md)
 
-## What's here / changelog
-### Jul 07 2022
-* Updated README
-### May 21 2022
-* Initial version of at_secondary_proxy
+## changelog
+Changes are logged in the CHANGELOG.md file
