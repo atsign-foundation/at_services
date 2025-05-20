@@ -47,10 +47,5 @@ can connect to using an allow-list or block-list or both
 All of our software is open with intent. We welcome contributions - we want pull requests, and we want
 to hear about issues. See also [CONTRIBUTING.md](../CONTRIBUTING.md)
 
-## What's here / changelog
-### May 30th 2025
-* Updated README
-### Jul 07 2022
-* Updated README
-### May 21 2022
-* Initial version of at_secondary_proxy
+## changelog
+Changes are logged in the CHANGELOG.md file
