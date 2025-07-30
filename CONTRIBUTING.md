@@ -37,22 +37,22 @@ describe. The atsign-foundation GitHub organization's conventions and configurat
 
 To prepare your dedicated GitHub repository:
 
-1. Fork in GitHub https://github.com/atsign-foundation/REPO
-2. Clone *your forked repository* (e.g., `git clone git@github.com:yourname/REPO`)
+1. Fork in GitHub https://github.com/atsign-foundation/at_services
+2. Clone *your forked repository* (e.g., `git clone git@github.com:yourname/at_services`)
 3. Set your remotes as follows:
 
    ```sh
-   cd REPO
-   git remote add upstream git@github.com:atsign-foundation/REPO.git
+   cd at_services
+   git remote add upstream git@github.com:atsign-foundation/at_services.git
    git remote set-url upstream --push DISABLED
    ```
 
    Running `git remote -v` should give something similar to:
 
    ```text
-   origin  git@github.com:yourname/REPO.git (fetch)
-   origin  git@github.com:yourname/REPO.git (push)
-   upstream        git@github.com:atsign-foundation/REPO.git (fetch)
+   origin  git@github.com:yourname/at_services.git (fetch)
+   origin  git@github.com:yourname/at_services.git (push)
+   upstream        git@github.com:atsign-foundation/at_services.git (fetch)
    upstream        DISABLED (push)
    ```
 
@@ -96,10 +96,10 @@ To prepare your dedicated GitHub repository:
 1. Open a new Pull Request to the main repository using your `trunk` branch
 
 
-## @‎library release process
+## at_library release process
 
 The Atsign Foundation produces several widgets and libraries that the app developer
-can make use of to develop apps on @‎protocol. These libraries are developed in
+can make use of to develop apps on at_protocol. These libraries are developed in
 Dart & Flutter and published to [pub.dev](https://pub.dev/publishers/atsign.org/packages).
 
 ![alt_text](images/image1.png "Version flow")
@@ -121,7 +121,7 @@ chronological order.
 ## Reporting a bug
 
 The best place to start reporting bugs on the libraries published by
-@‎protocol would be the “View/report issues” link available on
+at_protocol would be the “View/report issues” link available on
 [pub.dev](https://pub.dev/publishers/atsign.org/packages).
 
 ![alt_text](images/image4.png "View/report issues highlight")
