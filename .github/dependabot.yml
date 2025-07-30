@@ -1,0 +1,28 @@
+version: 2
+enable-beta-ecosystems: true
+updates:
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+  - package-ecosystem: "docker"
+    directory: "/packages/at_secondary_proxy/"
+    schedule:
+      interval: "daily"
+    groups:
+      docker:
+        patterns:
+          - "*"
+  - package-ecosystem: "pub"
+    directory: "/packages/at_secondary_proxy/"
+    schedule:
+      interval: "daily"
+    groups:
+      pub:
+        patterns:
+          - "*"
