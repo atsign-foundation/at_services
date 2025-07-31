@@ -24,7 +24,7 @@ class SecondaryProxyServer {
   SecondaryProxyServer(this.proxyUrl, this.proxyPort, this.bindPort, this.secondaryAddressFinder);
 
   void startServing() {
-    var secCon = SecurityContext();
+    var secCon = SecurityContext.defaultContext;
 
     secCon.useCertificateChain(_certificateChainLocation);
     secCon.usePrivateKey(_privateKeyLocation);
