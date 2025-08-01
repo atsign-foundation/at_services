@@ -11,7 +11,7 @@ updates:
         patterns:
           - "*"
   - package-ecosystem: "docker"
-    directory: "/packages/at_secondary_proxy/"
+    directory: "/packages/at_secondary_proxy/tools/"
     schedule:
       interval: "daily"
     groups:
