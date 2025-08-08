@@ -1,12 +1,13 @@
 name: proxy_rebuild
 # Creates a new image for atsigncompany/at_proxyserver whenever updated
-# certificates are merged to trunk
+# certificates are merged to trunk or if Dockerfile is bumped
 on:
   push:
     branches:
       - trunk
     paths:
       - 'packages/at_secondary_proxy/certs/cert.pem'
+      - 'packages/at_secondary_proxy/tools/Dockerfile'
   workflow_dispatch:
 
 permissions:  # added using https://github.com/step-security/secure-workflows
