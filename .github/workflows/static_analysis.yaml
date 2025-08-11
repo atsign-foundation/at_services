@@ -1,7 +1,4 @@
-# This workflows runs when
-# 1. pull_request raised to trunk branch.
-# 2. tag created on at_tools repository
-name: osv-scanner
+name: static_analysis
 
 on:
   push:
@@ -15,15 +12,25 @@ permissions: # added using https://github.com/step-security/secure-workflows
   contents: read
 
 jobs:
-  scan-workspace:
+  static_analysis:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-
+      - uses: dart-lang/setup-dart@e51d8e571e22473a2ddebf0ef8a2123f0ab2c02c # v1.7.1
+        with:
+          sdk: stable
       - uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
         with:
           go-version: "stable"
           cache-dependency-path: tools/osv-scanner/go.sum
+
+      # Runs dart lint rules
+      - name: Install dependencies and run analyze - at_secondary_proxy
+        working-directory: packages/at_secondary_proxy
+        run: |
+          dart pub get
+          dart analyze
 
       - name: Run osv-scanner
         working-directory: packages/at_secondary_proxy
