@@ -73,6 +73,22 @@ All of our software is open with intent. We welcome contributions - we want
 pull requests, and we want to hear about issues. See also
 [CONTRIBUTING.md](../../CONTRIBUTING.md)
 
-## changelog
+## Change log
 
 Changes are logged in the [CHANGELOG.md](CHANGELOG.md) file
+
+## SLSA
+
+The Docker images created from this repo have SLSA Build Level 3 attestations.
+
+These can be verified using the
+[slsa-verifier](https://github.com/slsa-framework/slsa-verifier) tool e.g.:
+
+```sh
+TAG="latest"
+IMAGE="atsigncompany/at_proxyserver"
+SHA=$(docker buildx imagetools inspect ${IMAGE}:${TAG} \
+  --format "{{json .Manifest}}" | jq -r .digest)
+slsa-verifier verify-image ${IMAGE}@${SHA} --source-uri \
+  github.com/atsign-foundation/at_server
+```

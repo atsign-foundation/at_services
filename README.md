@@ -7,6 +7,7 @@
 [![gitHub license](https://img.shields.io/badge/license-BSD3-blue.svg)](../LICENSE)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/atsign-foundation/at_services/badge)](https://securityscorecards.dev/viewer/?uri=github.com/atsign-foundation/at_services&sort_by=check-score&sort_direction=desc)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/11022/badge)](https://www.bestpractices.dev/projects/11022)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev)
 
 # The atPlatform ancillary services
 
