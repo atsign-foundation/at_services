@@ -16,11 +16,8 @@ permissions:  # added using https://github.com/step-security/secure-workflows
 jobs:
   at_proxyserver:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      packages: write
-      contents: read
-      attestations: write
+    outputs:
+      digest: ${{ steps.docker_build_proxy.outputs.digest }}
     steps:
       - name: Checkout trunk
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
@@ -45,10 +42,17 @@ jobs:
           platforms: |
             linux/amd64
             linux/arm64/v8
-      - name: Attest
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
-        id: attest
-        with:
-          subject-name: index.docker.io/atsigncompany/at_proxyserver
-          subject-digest: ${{ steps.docker_build_proxy.outputs.digest }}
-          push-to-registry: true
+
+  slsa_provenance:
+    needs: [at_proxyserver]
+    permissions:
+      actions: read # for detecting the Github Actions environment.
+      id-token: write # for creating OIDC tokens for signing.
+      packages: write # for uploading attestations.
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
+    with:
+      image: "atsigncompany/at_proxyserver"
+      digest: ${{ needs.at_proxyserver.outputs.digest }}
+    secrets:
+      registry-username: ${{ secrets.DOCKERHUB_USERNAME }}
+      registry-password: ${{ secrets.DOCKERHUB_TOKEN }}
