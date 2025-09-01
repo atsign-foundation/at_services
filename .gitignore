@@ -27,3 +27,9 @@ doc/api/
 *.js_
 *.js.deps
 *.js.map
+
+# AI stuff
+AGENTS.md
+CLAUDE.md
+.claude/
+.serena/
