@@ -13,18 +13,27 @@ const dummyProxyUrl = 'proxy.example';
 
 void main() {
   group('SecondaryConnectionBridge start state', () {
-    // create Mocks
-    final clientSocket = SecureSocketMock();
-    final addressFinder = SecondaryAddressFinderMock();
+    // a mock SecureSocket to simulate client connection
+    late SecureSocketMock clientSocket;
 
-    final writes = <String>[];
+    // a mock SecondaryAddressFinder, we don't care about its behavior in these tests
+    late SecondaryAddressFinderMock addressFinder;
 
-    // define how clientSocket responds to .write
-    when(clientSocket.write(any)).thenAnswer((invocation) {
-      writes.add(invocation.positionalArguments[0] as String);
-      return;
+    // to capture what gets written to the client socket
+    late List<String> writes;
+
+    setUpAll(() {
+      // create Mocks
+      clientSocket = SecureSocketMock();
+      addressFinder = SecondaryAddressFinderMock();
+      writes = <String>[];
+
+      // define how clientSocket responds to .write
+      when(clientSocket.write(any)).thenAnswer((invocation) {
+        writes.add(invocation.positionalArguments[0] as String);
+        return;
+      });
     });
-
 
     test('SecondaryConnectionBridge sends "@" prompt upon construction', () async {
       // in this test,
