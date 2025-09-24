@@ -11,7 +11,7 @@ inputs:
   dart-channel:
     required: false
     description: Dart channel to install
-    default: stable
+    default: "stable"
 
 runs:
   using: composite
