@@ -16,7 +16,6 @@ void main() {
     // create Mocks
     final clientSocket = SecureSocketMock();
     final addressFinder = SecondaryAddressFinderMock();
-    clientSocket.setDoneFuture(Future<void>.value());
 
     final writes = <String>[];
 
@@ -26,15 +25,14 @@ void main() {
       return;
     });
 
-    // create SecondaryConnectionBridge
-    SecondaryConnectionBridge(dummyProxyUrl, clientSocket, addressFinder);
 
     test('SecondaryConnectionBridge sends "@" prompt upon construction', () async {
       // in this test,
-      // we send a valid "from:<atSign>" command to the proxy server
-      // example: "from:@alice\n"
       // we expect it to send back "@" prompt when the connection is established
       // this indicates that the proxy server created a bridge for us to that atServer
+
+      // create SecondaryConnectionBridge
+      SecondaryConnectionBridge(dummyProxyUrl, clientSocket, addressFinder);
       expect(writes, contains('@'));
     });
 
@@ -43,7 +41,7 @@ void main() {
       // we send a non-valid command to the proxy server
       // we expect it to return the address of the proxy server back to us (Which is the same address we connected with anyways)
 
-      // Simulate sending an invalid command
+      // simulate sending an invalid command
       final Uint8List invalidCommand = Uint8List.fromList('invalid_command\n'.codeUnits);
       clientSocket.controller.add(invalidCommand);
 
