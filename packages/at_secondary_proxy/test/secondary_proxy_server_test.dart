@@ -6,21 +6,10 @@ import 'dart:mirrors';
 import 'package:at_lookup/at_lookup.dart';
 import 'package:test/test.dart';
 
+import 'lib/recording_secondary_address_finder.dart';
 import 'package:at_secondary_proxy/src/secondary_proxy_server.dart';
 
-class RecordingSecondaryAddressFinder implements SecondaryAddressFinder {
-  RecordingSecondaryAddressFinder(this._handler);
-
-  final Future<SecondaryAddress> Function(String atSign) _handler;
-  final List<String> lookups = <String>[];
-
-  @override
-  Future<SecondaryAddress> findSecondary(String atSign) {
-    lookups.add(atSign);
-    return _handler(atSign);
-  }
-}
-
+// Waits until [condition] returns true or the [timeout] is reached.
 Future<void> _waitFor(bool Function() condition,
     {Duration timeout = const Duration(seconds: 3)}) async {
   final deadline = DateTime.now().add(timeout);
@@ -32,71 +21,67 @@ Future<void> _waitFor(bool Function() condition,
   }
 }
 
+// for accessing private members of SecondaryProxyServer
 Symbol _privateSymbol(String name) {
   final library = reflectClass(SecondaryProxyServer).owner as LibraryMirror;
   return MirrorSystem.getSymbol(name, library);
 }
 
+// retrieves the private _secureServerSocket field from SecondaryProxyServer
 SecureServerSocket _getSecureServerSocket(SecondaryProxyServer server) {
   final instance = reflect(server);
   return instance.getField(_privateSymbol('_secureServerSocket')).reflectee
       as SecureServerSocket;
 }
 
+// sets the running flag of SecondaryProxyServer
 void _setRunning(SecondaryProxyServer server, bool value) {
   final instance = reflect(server);
   instance.setField(_privateSymbol('_running'), value);
 }
 
 void main() {
-  late Directory originalCwd;
-
-  setUpAll(() {
-    originalCwd = Directory.current;
-    final certFile = File('certs/fullchain.pem');
-    if (!certFile.existsSync()) {
-      final packageDir =
-          Directory('${originalCwd.path}/packages/at_secondary_proxy');
-      if (!packageDir.existsSync()) {
-        throw StateError('Expected package directory at ${packageDir.path}');
-      }
-      Directory.current = packageDir;
-    }
-  });
-
-  tearDownAll(() {
-    Directory.current = originalCwd;
-  });
-
   group('SecondaryProxyServer', () {
     late SecondaryProxyServer server;
     late RecordingSecondaryAddressFinder addressFinder;
 
+    // runs for each test
     setUp(() async {
+      // set up an addressFinder that always fails
       addressFinder = RecordingSecondaryAddressFinder(
         (_) => Future<SecondaryAddress>.error(Exception('no secondary')),
       );
+
+      // set up and start the server
       server = SecondaryProxyServer('proxy.example', 9449, 0, addressFinder);
       server.startServing();
+
+      // wait until the server is running
       await _waitFor(() => server.running);
     });
 
+    // runs after each test
     tearDown(() async {
       try {
         final socket = _getSecureServerSocket(server);
         await socket.close();
-      } on Object {
+      } catch (_) {
         // ignore close failures in tests
       }
     });
 
     test('startServing sets running and accepts client connections', () async {
+      // in this test,
+      // we expect that after running SecondaryProxyServer.startServing(),
+      // the server is running and accepts client connections
       final serverSocket = _getSecureServerSocket(server);
       final port = serverSocket.port;
 
+      // this completer will complete when we receive data from the server
       final promptCompleter = Completer<String>();
 
-      final client = await SecureSocket.connect(
+      // this socket represents a client connecting to the server
+      final SecureSocket client = await SecureSocket.connect(
         InternetAddress.loopbackIPv4,
         port,
         onBadCertificate: (_) => true,
@@ -118,6 +103,11 @@ void main() {
       await client.flush();
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
+      // since we wrote @alice to the proxy secondary server and it is using a recording secondary address finder
+      // we will expect that the address finder recorded a lookup for @alice
+      // this means that the proxy server accepted the client connection and processed the input
+      // and attempted addressFinder.findSecondary('@alice')
+      print(addressFinder.lookups);
       expect(addressFinder.lookups, contains('@alice'));
 
       await client.close();
@@ -127,17 +117,24 @@ void main() {
       final serverSocket = _getSecureServerSocket(server);
       final port = serverSocket.port;
 
+      // manually set isRunning to false
       _setRunning(server, false);
       addressFinder.lookups.clear();
 
+      // create a socket to write to the server
       final client = await SecureSocket.connect(
         InternetAddress.loopbackIPv4,
         port,
         onBadCertificate: (_) => true,
       );
 
+      client.write('from:@bob\n');
+      await client.flush();
+
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
+      // since it's not running,
+      // we expect that no lookups were made
       expect(addressFinder.lookups, isEmpty);
 
       await client.close();
