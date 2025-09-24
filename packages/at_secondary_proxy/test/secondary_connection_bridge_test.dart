@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import 'package:at_secondary_proxy/src/secondary_connection_bridge.dart';
 
-import 'mock/mocks.dart';
+import 'lib/mock/mocks.dart';
 
 const dummyProxyUrl = 'proxy.example';
 

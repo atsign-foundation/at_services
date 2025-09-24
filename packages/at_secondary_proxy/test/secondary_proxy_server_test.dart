@@ -1,44 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:mirrors';
 
 import 'package:at_lookup/at_lookup.dart';
 import 'package:test/test.dart';
 
 import 'lib/recording_secondary_address_finder.dart';
+import 'lib/secondary_proxy_server_test_helpers.dart';
 import 'package:at_secondary_proxy/src/secondary_proxy_server.dart';
-
-// Waits until [condition] returns true or the [timeout] is reached.
-Future<void> _waitFor(bool Function() condition,
-    {Duration timeout = const Duration(seconds: 3)}) async {
-  final deadline = DateTime.now().add(timeout);
-  while (!condition()) {
-    if (DateTime.now().isAfter(deadline)) {
-      throw TimeoutException('Condition not met before $timeout elapsed');
-    }
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-  }
-}
-
-// for accessing private members of SecondaryProxyServer
-Symbol _privateSymbol(String name) {
-  final library = reflectClass(SecondaryProxyServer).owner as LibraryMirror;
-  return MirrorSystem.getSymbol(name, library);
-}
-
-// retrieves the private _secureServerSocket field from SecondaryProxyServer
-SecureServerSocket _getSecureServerSocket(SecondaryProxyServer server) {
-  final instance = reflect(server);
-  return instance.getField(_privateSymbol('_secureServerSocket')).reflectee
-      as SecureServerSocket;
-}
-
-// sets the running flag of SecondaryProxyServer
-void _setRunning(SecondaryProxyServer server, bool value) {
-  final instance = reflect(server);
-  instance.setField(_privateSymbol('_running'), value);
-}
 
 void main() {
   group('SecondaryProxyServer', () {
@@ -57,13 +26,13 @@ void main() {
       server.startServing();
 
       // wait until the server is running
-      await _waitFor(() => server.running);
+      await waitFor(() => server.running);
     });
 
     // runs after each test
     tearDown(() async {
       try {
-        final socket = _getSecureServerSocket(server);
+        final socket = getSecureServerSocket(server);
         await socket.close();
       } catch (_) {
         // ignore close failures in tests
@@ -74,7 +43,7 @@ void main() {
       // in this test,
       // we expect that after running SecondaryProxyServer.startServing(),
       // the server is running and accepts client connections
-      final serverSocket = _getSecureServerSocket(server);
+      final serverSocket = getSecureServerSocket(server);
       final port = serverSocket.port;
 
       // this completer will complete when we receive data from the server
@@ -114,11 +83,11 @@ void main() {
     });
 
     test('does not create bridge when running flag is false', () async {
-      final serverSocket = _getSecureServerSocket(server);
+      final serverSocket = getSecureServerSocket(server);
       final port = serverSocket.port;
 
       // manually set isRunning to false
-      _setRunning(server, false);
+      setRunning(server, false);
       addressFinder.lookups.clear();
 
       // create a socket to write to the server
