@@ -1,4 +1,5 @@
 name: Setup Flutter and Dart
+
 description: |
   Installs flutter & dart, using a non-flutter dart binary of specified channel
 
@@ -23,7 +24,7 @@ runs:
         cat flutter_ref-${{ inputs.flutter-channel }}
         )
         echo "sha=$sha" >> "$GITHUB_OUTPUT"
-      working-directory: ./actions/setup-flutter-and-dart/
+      working-directory: ${{ github.action_path }}
 
     - name: Install Flutter
       uses: subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225 #v2.12.0
