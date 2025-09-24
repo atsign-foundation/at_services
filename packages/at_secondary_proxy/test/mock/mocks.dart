@@ -9,7 +9,8 @@ import 'package:mockito/mockito.dart';
 // Lightweight hand-written mocks so we can control listen/done behavior in unit tests.
 class SecureSocketMock extends Mock implements SecureSocket {
   final StreamController<Uint8List> _controller = StreamController<Uint8List>();
-  StreamController<Uint8List> get controller => _controller; // a way to add data to the stream manually, useful for testing
+  StreamController<Uint8List> get controller =>
+      _controller; // a way to add data to the stream manually, useful for testing
 
   // `done` is used for error handling
   // this mirrors SecureSocket.done which is a Future that completes when the socket is closed
@@ -42,6 +43,7 @@ class SecureSocketMock extends Mock implements SecureSocket {
   }
 }
 
+// Simple server stub that lets tests inject fake client sockets via emitClient.
 class SecureServerSocketMock extends Mock implements SecureServerSocket {
   StreamController<SecureSocket>? _controller;
   void Function(SecureSocket socket)? _onData;
@@ -80,6 +82,8 @@ class SecureServerSocketMock extends Mock implements SecureServerSocket {
   }
 }
 
-class SecondaryAddressFinderMock extends Mock implements SecondaryAddressFinder {}
+class SecondaryAddressFinderMock extends Mock
+    implements SecondaryAddressFinder {}
 
-class SecondaryConnectionBridgeMock extends Mock implements SecondaryConnectionBridge {}
+class SecondaryConnectionBridgeMock extends Mock
+    implements SecondaryConnectionBridge {}
