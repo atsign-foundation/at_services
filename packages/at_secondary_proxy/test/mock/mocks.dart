@@ -42,7 +42,43 @@ class SecureSocketMock extends Mock implements SecureSocket {
   }
 }
 
-class SecureServerSocketMock extends Mock implements SecureServerSocket {}
+class SecureServerSocketMock extends Mock implements SecureServerSocket {
+  StreamController<SecureSocket>? _controller;
+  void Function(SecureSocket socket)? _onData;
+
+  StreamController<SecureSocket> get controller =>
+      _controller ??= StreamController<SecureSocket>();
+
+  @override
+  StreamSubscription<SecureSocket> listen(
+    void Function(SecureSocket socket)? onData, {
+    Function? onError,
+    void Function()? onDone,
+    bool? cancelOnError,
+  }) {
+    _onData = onData;
+    return controller.stream.listen(
+      onData,
+      onError: onError,
+      onDone: onDone,
+      cancelOnError: cancelOnError,
+    );
+  }
+
+  void emitClient(SecureSocket socket) {
+    _onData?.call(socket);
+  }
+
+  Future<void> closeController() async {
+    await _controller?.close();
+  }
+
+  @override
+  Future<SecureServerSocket> close() async {
+    await closeController();
+    return this;
+  }
+}
 
 class SecondaryAddressFinderMock extends Mock implements SecondaryAddressFinder {}
 
