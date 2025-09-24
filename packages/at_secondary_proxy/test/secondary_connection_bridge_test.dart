@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:at_lookup/at_lookup.dart';
 import 'package:at_secondary_proxy/at_secondary_proxy.dart';
+import 'package:at_utils/at_utils.dart';
 import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
@@ -22,17 +24,22 @@ void main() {
     // to capture what gets written to the client socket
     late List<String> writes;
 
-    setUpAll(() {
+    setUp(() {
       // create Mocks
       clientSocket = SecureSocketMock();
+      clientSocket.setDoneFuture(Future<void>.value()); // simulate a socket that is open and not closed
       addressFinder = SecondaryAddressFinderMock();
       writes = <String>[];
 
       // define how clientSocket responds to .write
       when(clientSocket.write(any)).thenAnswer((invocation) {
+        // capture what is written to the socket
         writes.add(invocation.positionalArguments[0] as String);
         return;
       });
+
+      // create the SecondaryConnectionBridge
+      SecondaryConnectionBridge(dummyProxyUrl, clientSocket, addressFinder);
     });
 
     test('SecondaryConnectionBridge sends "@" prompt upon construction', () async {
@@ -41,7 +48,6 @@ void main() {
       // this indicates that the proxy server created a bridge for us to that atServer
 
       // create SecondaryConnectionBridge
-      SecondaryConnectionBridge(dummyProxyUrl, clientSocket, addressFinder);
       expect(writes, contains('@'));
     });
 
@@ -62,7 +68,7 @@ void main() {
       expect(writes, contains('$dummyProxyUrl\n'));
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await clientSocket.closeController();
     });
   });
