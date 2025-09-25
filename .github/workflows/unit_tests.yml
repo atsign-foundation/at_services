@@ -32,11 +32,6 @@ jobs:
         run: |
           dart pub get
 
-      - name: Run build runner
-        working-directory: packages/${{ matrix.package }}
-        run: |
-          dart run build_runner build
-
       - name: Run tests
         working-directory: packages/${{ matrix.package }}
         run: |
