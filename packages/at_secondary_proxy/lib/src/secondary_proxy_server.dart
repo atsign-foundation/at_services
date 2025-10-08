@@ -21,7 +21,8 @@ class SecondaryProxyServer {
   bool _running = false;
   bool get running => _running;
 
-  SecondaryProxyServer(this.proxyUrl, this.proxyPort, this.bindPort, this.secondaryAddressFinder);
+  SecondaryProxyServer(this.proxyUrl, this.proxyPort, this.bindPort,
+      this.secondaryAddressFinder);
 
   void startServing() {
     var secCon = SecurityContext.defaultContext;
@@ -30,7 +31,8 @@ class SecondaryProxyServer {
     secCon.usePrivateKey(_privateKeyLocation);
     secCon.setTrustedCertificates(_trustedCertificateLocation);
 
-    SecureServerSocket.bind(InternetAddress.anyIPv4, bindPort, secCon, requestClientCertificate: true)
+    SecureServerSocket.bind(InternetAddress.anyIPv4, bindPort, secCon,
+            requestClientCertificate: true)
         .then((SecureServerSocket secureServerSocket) {
       logger.info('Secure Socket listening on port $bindPort');
       _secureServerSocket = secureServerSocket;

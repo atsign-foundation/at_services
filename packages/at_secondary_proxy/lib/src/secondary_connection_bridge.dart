@@ -12,18 +12,25 @@ class SecondaryConnectionBridge {
   late SecureSocket _secondarySocket;
   final String proxyUrl;
 
-  static final AtSignLogger _initialLogger = AtSignLogger('SecondaryConnectionBridge');
+  static final AtSignLogger _initialLogger =
+      AtSignLogger('SecondaryConnectionBridge');
 
   AtSignLogger _logger = _initialLogger;
 
   BridgeState _state = BridgeState.opening;
 
+  final SocketCreator _socketCreator;
+
   final SecondaryAddressFinder _secondaryAddressFinder;
 
   late String _atSign;
 
-  SecondaryConnectionBridge(this.proxyUrl, this._clientSocket, this._secondaryAddressFinder) {
-    _clientSocket.listen(_clientOnData, onDone: _clientOnDone, onError: _clientOnError);
+  SecondaryConnectionBridge(
+      this.proxyUrl, this._clientSocket, this._secondaryAddressFinder,
+      {SocketCreator? socketCreator})
+      : _socketCreator = socketCreator ?? DefaultSocketCreator() {
+    _clientSocket.listen(_clientOnData,
+        onDone: _clientOnDone, onError: _clientOnError);
     _clientSocket.done.onError((error, stackTrace) => (_clientOnError(error)));
 
     _logger.info("Sending @ prompt; started listening on new client socket");
@@ -63,7 +70,8 @@ class SecondaryConnectionBridge {
           late SecondaryAddress secondaryAddress;
           try {
             _logger.info("Looking up secondary for $_atSign");
-            secondaryAddress = await _secondaryAddressFinder.findSecondary(_atSign);
+            secondaryAddress =
+                await _secondaryAddressFinder.findSecondary(_atSign);
           } catch (e) {
             await _writeStringAndClose(e.toString());
             return;
@@ -72,19 +80,21 @@ class SecondaryConnectionBridge {
           // connect to the secondary
           try {
             _logger.info("Connecting to $secondaryAddress");
-            _secondarySocket = await SecureSocket.connect(secondaryAddress.host, secondaryAddress.port);
+            _secondarySocket = await _socketCreator.create(
+                secondaryAddress.host, secondaryAddress.port);
           } catch (e) {
             await _writeStringAndClose(e.toString());
             return;
           }
           _logger.info("Setting up secondary socket listen");
-          _secondarySocket.listen(_secondaryOnData, onDone: _secondaryOnDone, onError: _secondaryOnError);
-          unawaited(_secondarySocket.done.onError((error, stackTrace) => (_clientOnError(error))));
+          _secondarySocket.listen(_secondaryOnData,
+              onDone: _secondaryOnDone, onError: _secondaryOnError);
+          unawaited(_secondarySocket.done
+              .onError((error, stackTrace) => (_clientOnError(error))));
 
           try {
             _logger.info("Writing command $command plus \\n");
             _secondarySocket.write('$command\n');
-            await _secondarySocket.flush();
 
             _logger.info("Bridge is open");
             _state = BridgeState.open;
@@ -97,7 +107,6 @@ class SecondaryConnectionBridge {
         break;
       case BridgeState.open:
         _secondarySocket.add(data);
-        await (_secondarySocket.flush());
         break;
       case BridgeState.closing:
         // Nothing to do here
@@ -112,11 +121,11 @@ class SecondaryConnectionBridge {
     switch (_state) {
       case BridgeState.opening:
         // Should not be possible
-        _logger.severe("_serverMessageHandler called while BridgeState is $_state");
+        _logger.severe(
+            "_serverMessageHandler called while BridgeState is $_state");
         break;
       case BridgeState.open:
         _clientSocket.add(data);
-        await (_clientSocket.flush());
         break;
       case BridgeState.closing:
         // Nothing to do here
@@ -206,5 +215,15 @@ class SecondaryConnectionBridge {
     }
     // ignore: empty_catches
     catch (ignore) {}
+  }
+}
+
+abstract interface class SocketCreator {
+  Future<SecureSocket> create(String host, int port);
+}
+class DefaultSocketCreator implements SocketCreator {
+  @override
+  Future<SecureSocket> create(String host, int port) {
+    return SecureSocket.connect(host, port);
   }
 }
