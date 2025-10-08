@@ -32,7 +32,7 @@ void main() {
       writes = <String>[];
 
       // define how clientSocket responds to .write
-      when(() => clientSocket.write(any)).thenAnswer((invocation) {
+      when(() => clientSocket.write(any())).thenAnswer((invocation) {
         // capture what is written to the socket
         writes.add(invocation.positionalArguments[0] as String);
         return;
