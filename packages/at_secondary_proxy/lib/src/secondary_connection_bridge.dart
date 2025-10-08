@@ -22,6 +22,8 @@ class SecondaryConnectionBridge {
 
   late String _atSign;
 
+  String get atSign => _atSign;
+  
   SecondaryConnectionBridge(this.proxyUrl, this._clientSocket, this._secondaryAddressFinder) {
     _clientSocket.listen(_clientOnData, onDone: _clientOnDone, onError: _clientOnError);
     _clientSocket.done.onError((error, stackTrace) => (_clientOnError(error)));
@@ -84,7 +86,6 @@ class SecondaryConnectionBridge {
           try {
             _logger.info("Writing command $command plus \\n");
             _secondarySocket.write('$command\n');
-            await _secondarySocket.flush();
 
             _logger.info("Bridge is open");
             _state = BridgeState.open;
@@ -97,7 +98,6 @@ class SecondaryConnectionBridge {
         break;
       case BridgeState.open:
         _secondarySocket.add(data);
-        await (_secondarySocket.flush());
         break;
       case BridgeState.closing:
         // Nothing to do here
@@ -116,7 +116,6 @@ class SecondaryConnectionBridge {
         break;
       case BridgeState.open:
         _clientSocket.add(data);
-        await (_clientSocket.flush());
         break;
       case BridgeState.closing:
         // Nothing to do here
