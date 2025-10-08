@@ -22,8 +22,7 @@ class SecondaryConnectionBridge {
 
   late String _atSign;
 
-  String get atSign => _atSign;
-  
+
   SecondaryConnectionBridge(this.proxyUrl, this._clientSocket, this._secondaryAddressFinder) {
     _clientSocket.listen(_clientOnData, onDone: _clientOnDone, onError: _clientOnError);
     _clientSocket.done.onError((error, stackTrace) => (_clientOnError(error)));
