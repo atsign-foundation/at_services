@@ -90,7 +90,7 @@ IMAGE="atsigncompany/at_proxyserver"
 SHA=$(docker buildx imagetools inspect ${IMAGE}:${TAG} \
   --format "{{json .Manifest}}" | jq -r .digest)
 slsa-verifier verify-image ${IMAGE}@${SHA} --source-uri \
-  github.com/atsign-foundation/at_server
+  github.com/atsign-foundation/at_services
 ```
 
 ## Docker image signing
