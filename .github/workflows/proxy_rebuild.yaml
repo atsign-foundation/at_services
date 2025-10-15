@@ -16,11 +16,16 @@ permissions:  # added using https://github.com/step-security/secure-workflows
 jobs:
   at_proxyserver:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # for creating OIDC tokens for signing.
     outputs:
       digest: ${{ steps.docker_build_proxy.outputs.digest }}
     steps:
       - name: Checkout trunk
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - name: Install cosign
+        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v3.10.0
       - name: Set up QEMU
         uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
       - name: Set up Docker Buildx
@@ -30,18 +35,40 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
+        with:
+          tags: |
+            type=raw,value=latest
+            type=raw,value=gha${{ github.run_number }}
+          images: |
+            atsigncompany/at_proxyserver
+          labels: |
+            org.opencontainers.image.description=Atsign Proxy Server
       - name: Build and push at_proxyserver
         id: docker_build_proxy
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           file: packages/at_secondary_proxy/tools/Dockerfile
           push: true
-          tags: |
-            atsigncompany/at_proxyserver:latest
-            atsigncompany/at_proxyserver:gha${{ github.run_number }}
+          sbom: true
+          provenance: version=v1,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           platforms: |
             linux/amd64
             linux/arm64/v8
+      - name: Sign the images with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.docker_build_proxy.outputs.digest }}
+          TAGS: ${{ steps.meta.outputs.tags }}
+        run: |
+          images=""
+          for tag in ${TAGS}; do
+            images+="${tag}@${DIGEST} "
+          done
+          cosign sign --yes ${images}
 
   slsa_provenance:
     needs: [at_proxyserver]

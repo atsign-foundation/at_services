@@ -92,3 +92,15 @@ SHA=$(docker buildx imagetools inspect ${IMAGE}:${TAG} \
 slsa-verifier verify-image ${IMAGE}@${SHA} --source-uri \
   github.com/atsign-foundation/at_server
 ```
+
+## Docker image signing
+
+The Docker images created from this repo are signed during the build process
+so that you can verify their authenticity using
+[cosign](https://github.com/sigstore/cosign):
+
+```sh
+cosign verify atsigncompany/at_proxyserver:latest \
+--certificate-oidc-issuer=https://token.actions.githubusercontent.com \
+--certificate-identity-regexp='^https://github.com/atsign-foundation/at_services/.+'
+```
