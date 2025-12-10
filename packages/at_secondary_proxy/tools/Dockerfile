@@ -1,7 +1,7 @@
 # Dockerfile
 # Build image for a containerized call of the at_proxyserver binary in scratch container
 # default certs included but mount /atsign/certs for certs and caroot
-FROM dart:3.10.3@sha256:7240a3b57c8c755912674fcc95408ad00f4b1541397a7d54fa24a55e9deade7b AS buildimage
+FROM dart:3.11.0-200.1.beta@sha256:0d8592ebfdd9f8787ee862cc7e44c02a8207a6154021d9afa3dd58b1dc691678 AS buildimage
 ENV PACKAGEDIR=packages/at_secondary_proxy
 ENV HOMEDIR=/atsign
 ENV WORKDIR=/app
