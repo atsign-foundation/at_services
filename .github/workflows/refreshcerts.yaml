@@ -7,6 +7,9 @@ on:
 permissions:  # added using https://github.com/step-security/secure-workflows
   contents: read
 
+env:
+  CERTBASE: https://raw.githubusercontent.com/atsign-foundation/at_server/trunk/tools/build_virtual_environment/ve_base/contents/atsign/secondary/base/certs
+
 jobs:
   checkcert:
     runs-on: ubuntu-latest
@@ -20,8 +23,7 @@ jobs:
         name: Check for new cert
         run: |
           cd packages/at_secondary_proxy/certs/
-          CERTURL='https://raw.githubusercontent.com/atsign-foundation/at_server/trunk/tools/build_virtual_environment/ve_base/contents/atsign/secondary/base/certs/cert.pem'
-          wget -O cert.pem ${CERTURL}
+          wget -O cert.pem ${CERTBASE}/fullchain.pem
           if [ -z "$(git status --porcelain)" ]; then
             echo 'No new cert'
             echo "cert=NOTNEW" >> $GITHUB_OUTPUT
@@ -41,9 +43,7 @@ jobs:
         id: getcert
         run: |
           cd packages/at_secondary_proxy/certs/
-          CERTBASE='https://raw.githubusercontent.com/atsign-foundation/at_server/trunk/tools/build_virtual_environment/ve_base/contents/atsign/secondary/base/certs'
           wget -O cacert.pem ${CERTBASE}/cacert.pem
-          wget -O cert.pem ${CERTBASE}/cert.pem
           wget -O fullchain.pem ${CERTBASE}/fullchain.pem
           wget -O privkey.pem ${CERTBASE}/privkey.pem
 
