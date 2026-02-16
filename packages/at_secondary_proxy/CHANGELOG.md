@@ -1,5 +1,9 @@
 # at_secondary_proxy change log
 
+## 2.0.1
+
+- fix: do not request clients to present an SSL cert as it is not required
+
 ## 2.0.0
 
 - Added direct proxy resolution to atSign lookups and forward to Secondary
