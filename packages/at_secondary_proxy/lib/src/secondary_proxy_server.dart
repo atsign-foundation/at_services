@@ -31,8 +31,7 @@ class SecondaryProxyServer {
     secCon.usePrivateKey(_privateKeyLocation);
     secCon.setTrustedCertificates(_trustedCertificateLocation);
 
-    SecureServerSocket.bind(InternetAddress.anyIPv4, bindPort, secCon,
-            requestClientCertificate: true)
+    SecureServerSocket.bind(InternetAddress.anyIPv4, bindPort, secCon)
         .then((SecureServerSocket secureServerSocket) {
       logger.info('Secure Socket listening on port $bindPort');
       _secureServerSocket = secureServerSocket;
@@ -43,7 +42,7 @@ class SecondaryProxyServer {
 
   void stopServing() {}
 
-  void _listen(secureServerSocket) {
+  void _listen(SecureServerSocket secureServerSocket) {
     secureServerSocket.listen(((clientSocket) {
       if (!_running) {
         logger.info('Server cannot accept connections now.');
