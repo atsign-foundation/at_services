@@ -1,6 +1,6 @@
 name: at_secondary_proxy
 description: A reverse proxy through which clients can connect to secondary servers
-version: 2.0.1
+version: 2.0.2
 
 environment:
   sdk: '>=3.0.0'
