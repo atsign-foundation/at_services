@@ -1,5 +1,10 @@
 # at_secondary_proxy change log
 
+## 2.0.2
+
+- fix: use different SecurityContexts for (1) the bound server socket
+  (2) creation of new client sockets to the atServers
+
 ## 2.0.1
 
 - fix: do not request clients to present an SSL cert as it is not required
