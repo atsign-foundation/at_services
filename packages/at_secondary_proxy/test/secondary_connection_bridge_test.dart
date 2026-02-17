@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:at_lookup/at_lookup.dart';
@@ -38,8 +39,17 @@ void main() {
         return;
       });
 
+      registerFallbackValue(
+        SecurityContext(withTrustedRoots: true),
+      );
+
       // create the SecondaryConnectionBridge
-      SecondaryConnectionBridge(dummyProxyUrl, clientSocket, addressFinder);
+      SecondaryConnectionBridge(
+        dummyProxyUrl,
+        clientSocket,
+        addressFinder,
+        SecurityContext(withTrustedRoots: true),
+      );
     });
 
     test('SecondaryConnectionBridge sends "@" prompt upon construction',
@@ -109,14 +119,14 @@ void main() {
         return;
       });
 
-      when(() => socketCreator.create(any(), any()))
+      when(() => socketCreator.create(any(), any(), any()))
           .thenAnswer((_) async => mockSecondarySocket);
 
       when(() => addressFinder.findSecondary(any()))
           .thenAnswer((_) async => SecondaryAddress('secondary.example', 64));
       // create the SecondaryConnectionBridge
-      SecondaryConnectionBridge(
-          dummyProxyUrl, clientSocket, addressFinder,
+      SecondaryConnectionBridge(dummyProxyUrl, clientSocket, addressFinder,
+          SecurityContext(withTrustedRoots: true),
           socketCreator: socketCreator);
       // simulate sending a valid from: command
       final Uint8List validCommand =

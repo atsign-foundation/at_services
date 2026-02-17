@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:at_commons/at_commons.dart';
 import 'package:at_utils/at_utils.dart';
 import 'package:at_lookup/at_lookup.dart';
@@ -23,10 +24,12 @@ class SecondaryConnectionBridge {
 
   final SecondaryAddressFinder _secondaryAddressFinder;
 
+  final SecurityContext clientContext;
+
   late String _atSign;
 
-  SecondaryConnectionBridge(
-      this.proxyUrl, this._clientSocket, this._secondaryAddressFinder,
+  SecondaryConnectionBridge(this.proxyUrl, this._clientSocket,
+      this._secondaryAddressFinder, this.clientContext,
       {SocketCreator? socketCreator})
       : _socketCreator = socketCreator ?? DefaultSocketCreator() {
     _clientSocket.listen(_clientOnData,
@@ -39,7 +42,7 @@ class SecondaryConnectionBridge {
 
   final _buffer = ByteBuffer(terminatingChar: '\n', capacity: 511);
 
-  Future<void> _clientOnData(data) async {
+  Future<void> _clientOnData(Uint8List data) async {
     switch (_state) {
       case BridgeState.opening:
         // Expecting to receive from:<atSign>\n
@@ -81,7 +84,7 @@ class SecondaryConnectionBridge {
           try {
             _logger.info("Connecting to $secondaryAddress");
             _secondarySocket = await _socketCreator.create(
-                secondaryAddress.host, secondaryAddress.port);
+                secondaryAddress.host, secondaryAddress.port, clientContext);
           } catch (e) {
             await _writeStringAndClose(e.toString());
             return;
@@ -117,7 +120,7 @@ class SecondaryConnectionBridge {
     }
   }
 
-  Future<void> _secondaryOnData(data) async {
+  Future<void> _secondaryOnData(Uint8List data) async {
     switch (_state) {
       case BridgeState.opening:
         // Should not be possible
@@ -152,16 +155,16 @@ class SecondaryConnectionBridge {
     }
   }
 
-  Future<void> _clientOnError(error) async {
-    _logger.severe('_clientOnError(${error.toString()})');
+  Future<void> _clientOnError(Object? error) async {
+    _logger.severe('_clientOnError(${error?.toString()})');
     if (_state == BridgeState.open) {
       // nothing to do for any other state
       _destroySecondaryThenClient();
     }
   }
 
-  Future<void> _secondaryOnError(error) async {
-    _logger.severe('_secondaryOnError(${error.toString()})');
+  Future<void> _secondaryOnError(Object? error) async {
+    _logger.severe('_secondaryOnError(${error?.toString()})');
     if (_state == BridgeState.open) {
       // nothing to do for any other state
       _destroyClientThenSecondary();
@@ -219,11 +222,20 @@ class SecondaryConnectionBridge {
 }
 
 abstract interface class SocketCreator {
-  Future<SecureSocket> create(String host, int port);
+  Future<SecureSocket> create(
+    String host,
+    int port,
+    SecurityContext clientContext,
+  );
 }
+
 class DefaultSocketCreator implements SocketCreator {
   @override
-  Future<SecureSocket> create(String host, int port) {
-    return SecureSocket.connect(host, port);
+  Future<SecureSocket> create(
+    String host,
+    int port,
+    SecurityContext clientContext,
+  ) {
+    return SecureSocket.connect(host, port, context: clientContext);
   }
 }
