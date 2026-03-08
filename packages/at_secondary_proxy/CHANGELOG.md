@@ -1,5 +1,9 @@
 # at_secondary_proxy change log
 
+## 2.1.0
+
+- feat: enable proxy service to handle http GET requests
+
 ## 2.0.2
 
 - fix: use different SecurityContexts for (1) the bound server socket

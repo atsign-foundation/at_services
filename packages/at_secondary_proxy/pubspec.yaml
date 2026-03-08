@@ -1,18 +1,19 @@
 name: at_secondary_proxy
 description: A reverse proxy through which clients can connect to secondary servers
-version: 2.0.2
+version: 2.1.0
 
 environment:
   sdk: '>=3.0.0'
 
 
 dependencies:
-  at_commons: ^5.4.1
-  at_utils: ^3.2.0
-  at_lookup: ^3.1.0
+  at_commons: ^5.8.0
+  at_utils: ^3.4.0
+  at_lookup: ^3.5.0
+  http: ^1.6.0
 
 dev_dependencies:
-  lints: ^6.0.0
-  test: ^1.26.3
-  mockito: ^5.5.0
+  lints: ^6.1.0
+  test: ^1.30.0
+  mockito: ^5.6.3
   mocktail: ^1.0.4
