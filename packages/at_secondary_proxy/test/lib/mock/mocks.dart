@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:at_lookup/at_lookup.dart';
 import 'package:at_secondary_proxy/src/secondary_connection_bridge.dart';
 import 'package:mocktail/mocktail.dart';
+
 // Lightweight hand-written mocks so we can control listen/done behavior in unit tests.
 class SecureSocketMock extends Mock implements SecureSocket {
   final StreamController<Uint8List> _controller = StreamController<Uint8List>();
@@ -38,10 +39,9 @@ class SecureSocketMock extends Mock implements SecureSocket {
   }
 
   @override
-  Future<dynamic> flush(){
+  Future<dynamic> flush() {
     return _controller.addStream(_controller.stream);
   }
-  
 
   Future<void> closeController() async {
     await _controller.close();
