@@ -1,5 +1,14 @@
 # at_secondary_proxy change log
 
+## 2.2.0
+
+- feat: bridge inbound WebSocket connections (path `/ws`, ALPN
+  `http/1.1`) to upstream atServers. The bridge mirrors the existing
+  TCP `SecondaryConnectionBridge`: it writes `@` to the client on
+  connect, waits for `from:<atSign>\n`, looks up the upstream
+  atServer, opens a WebSocket to it, and forwards frames
+  bidirectionally preserving text/binary frame type.
+
 ## 2.1.0
 
 - feat: enable proxy service to handle http GET requests

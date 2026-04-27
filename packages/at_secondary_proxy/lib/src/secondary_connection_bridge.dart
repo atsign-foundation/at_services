@@ -1,223 +1,105 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:at_commons/at_commons.dart';
-import 'package:at_utils/at_utils.dart';
+
 import 'package:at_lookup/at_lookup.dart';
+import 'package:at_utils/at_utils.dart';
 
-enum BridgeState { opening, open, closing, closed }
+import 'secondary_bridge_base.dart';
 
-class SecondaryConnectionBridge {
+export 'secondary_bridge_base.dart' show BridgeState;
+
+/// Bridges an inbound atProtocol [SecureSocket] from an atClient to an
+/// outbound [SecureSocket] on the upstream atServer. State machine and
+/// orchestration live in [SecondaryBridgeBase]; this class supplies the
+/// `SecureSocket`-specific transport ops.
+class SecondaryConnectionBridge extends SecondaryBridgeBase {
   final SecureSocket _clientSocket;
   late SecureSocket _secondarySocket;
-  final String proxyUrl;
-
-  static final AtSignLogger _initialLogger =
-      AtSignLogger('SecondaryConnectionBridge');
-
-  AtSignLogger _logger = _initialLogger;
-
-  BridgeState _state = BridgeState.opening;
 
   final SocketCreator _socketCreator;
 
-  final SecondaryAddressFinder _secondaryAddressFinder;
+  SecondaryConnectionBridge(
+    String proxyUrl,
+    this._clientSocket,
+    SecondaryAddressFinder secondaryAddressFinder,
+    SecurityContext clientContext, {
+    SocketCreator? socketCreator,
+  })  : _socketCreator = socketCreator ?? DefaultSocketCreator(),
+        super(
+          proxyUrl,
+          secondaryAddressFinder,
+          clientContext,
+          initialLogger: AtSignLogger('SecondaryConnectionBridge'),
+        ) {
+    _clientSocket.listen(
+      (Uint8List data) => handleClientData(data, data),
+      onDone: handleClientDone,
+      onError: handleClientError,
+    );
+    _clientSocket.done.onError((error, _) => handleClientError(error));
 
-  final SecurityContext clientContext;
-
-  late String _atSign;
-
-  SecondaryConnectionBridge(this.proxyUrl, this._clientSocket,
-      this._secondaryAddressFinder, this.clientContext,
-      {SocketCreator? socketCreator})
-      : _socketCreator = socketCreator ?? DefaultSocketCreator() {
-    _clientSocket.listen(_clientOnData,
-        onDone: _clientOnDone, onError: _clientOnError);
-    _clientSocket.done.onError((error, stackTrace) => (_clientOnError(error)));
-
-    _logger.info("Sending @ prompt; started listening on new client socket");
-    _clientSocket.write("@");
+    logger.info('Sending @ prompt; started listening on new client socket');
+    sendPrompt();
   }
 
-  final _buffer = ByteBuffer(terminatingChar: '\n', capacity: 511);
+  @override
+  void sendPrompt() => _clientSocket.write('@');
 
-  Future<void> _clientOnData(Uint8List data) async {
-    switch (_state) {
-      case BridgeState.opening:
-        // Expecting to receive from:<atSign>\n
-        if (_buffer.isOverFlow(data)) {
-          await _writeStringAndClose('Too much');
-          return;
-        }
-
-        _buffer.append(data);
-
-        if (_buffer.isEnd()) {
-          // We've received the '\n'
-          var command = utf8.decode(_buffer.getData());
-          command = command.trim();
-          // If we get to \n and the command doesn't start with "from:" then log something and close this bridge
-          if (!command.startsWith("from:")) {
-            _logger.info('Looking up secondary for @$command');
-            await _writeStringAndClose(proxyUrl);
-            return;
-          }
-
-          // We've got a 'from:' command - let's get the atSign
-          _logger.info('Got "from" command: $command');
-          _atSign = command.split(":")[1];
-          _logger = AtSignLogger('SecondaryConnectionBridge $_atSign');
-
-          // We've got the @-sign - let's look up the address
-          late SecondaryAddress secondaryAddress;
-          try {
-            _logger.info("Looking up secondary for $_atSign");
-            secondaryAddress =
-                await _secondaryAddressFinder.findSecondary(_atSign);
-          } catch (e) {
-            await _writeStringAndClose(e.toString());
-            return;
-          }
-
-          // connect to the secondary
-          try {
-            _logger.info("Connecting to $secondaryAddress");
-            _secondarySocket = await _socketCreator.create(
-                secondaryAddress.host, secondaryAddress.port, clientContext);
-          } catch (e) {
-            await _writeStringAndClose(e.toString());
-            return;
-          }
-          _logger.info("Setting up secondary socket listen");
-          _secondarySocket.listen(_secondaryOnData,
-              onDone: _secondaryOnDone, onError: _secondaryOnError);
-          unawaited(_secondarySocket.done
-              .onError((error, stackTrace) => (_clientOnError(error))));
-
-          try {
-            _logger.info("Writing command $command plus \\n");
-            _secondarySocket.write('$command\n');
-
-            _logger.info("Bridge is open");
-            _state = BridgeState.open;
-          } catch (e) {
-            await _writeStringAndClose(e.toString());
-            _destroySecondarySocket();
-            return;
-          }
-        }
-        break;
-      case BridgeState.open:
-        _secondarySocket.add(data);
-        break;
-      case BridgeState.closing:
-        // Nothing to do here
-        break;
-      case BridgeState.closed:
-        // Nothing to do here
-        break;
-    }
+  @override
+  Future<void> writeErrorToClient(String msg) async {
+    _clientSocket.write('$msg\n');
+    await _clientSocket.flush();
   }
 
-  Future<void> _secondaryOnData(Uint8List data) async {
-    switch (_state) {
-      case BridgeState.opening:
-        // Should not be possible
-        _logger.severe(
-            "_serverMessageHandler called while BridgeState is $_state");
-        break;
-      case BridgeState.open:
-        _clientSocket.add(data);
-        break;
-      case BridgeState.closing:
-        // Nothing to do here
-        break;
-      case BridgeState.closed:
-        // Nothing to do here
-        break;
-    }
+  @override
+  Future<void> closeClient({int? closeCode, String? reason}) async {
+    destroyClient();
   }
 
-  Future<void> _clientOnDone() async {
-    _logger.info('_clientOnDone()');
-    if (_state == BridgeState.open) {
-      // nothing to do for any other state
-      _destroySecondaryThenClient();
-    }
+  @override
+  Future<void> connectSecondary(String host, int port) async {
+    _secondarySocket = await _socketCreator.create(host, port, clientContext);
+    logger.info('Setting up secondary socket listen');
+    _secondarySocket.listen(
+      (Uint8List data) => handleSecondaryData(data),
+      onDone: handleSecondaryDone,
+      onError: handleSecondaryError,
+    );
+    unawaited(
+        _secondarySocket.done.onError((error, _) => handleClientError(error)));
   }
 
-  Future<void> _secondaryOnDone() async {
-    _logger.info('_secondaryOnDone()');
-    if (_state == BridgeState.open) {
-      // nothing to do for any other state
-      _destroyClientThenSecondary();
-    }
+  @override
+  void forwardBufferedToSecondary(
+      List<int> bufferedBytes, String parsedCommand) {
+    // Preserves the historical behaviour of writing the trim-normalised
+    // command back, rather than the raw buffered bytes.
+    _secondarySocket.write('$parsedCommand\n');
   }
 
-  Future<void> _clientOnError(Object? error) async {
-    _logger.severe('_clientOnError(${error?.toString()})');
-    if (_state == BridgeState.open) {
-      // nothing to do for any other state
-      _destroySecondaryThenClient();
-    }
+  @override
+  void forwardToSecondaryOpen(dynamic data) {
+    _secondarySocket.add(data as List<int>);
   }
 
-  Future<void> _secondaryOnError(Object? error) async {
-    _logger.severe('_secondaryOnError(${error?.toString()})');
-    if (_state == BridgeState.open) {
-      // nothing to do for any other state
-      _destroyClientThenSecondary();
-    }
+  @override
+  void forwardToClientOpen(dynamic data) {
+    _clientSocket.add(data as List<int>);
   }
 
-  Future<void> _writeStringAndClose(String msg) async {
-    _state = BridgeState.closing;
-
-    _logger.info("_writeStringAndClose : $msg");
-
-    try {
-      _clientSocket.write('$msg\n');
-      await (_clientSocket.flush());
-    }
-    // ignore: empty_catches
-    catch (ignore) {}
-
-    _destroyClientSocket();
-
-    _state = BridgeState.closed;
-  }
-
-  void _destroySecondaryThenClient() {
-    _logger.info("_destroySecondaryThenClient()");
-    _state = BridgeState.closing;
-    _destroySecondarySocket();
-    _destroyClientSocket();
-    _state = BridgeState.closed;
-  }
-
-  void _destroyClientThenSecondary() {
-    _logger.info("_destroyClientThenSecondary()");
-    _state = BridgeState.closing;
-    _destroyClientSocket();
-    _destroySecondarySocket();
-    _state = BridgeState.closed;
-  }
-
-  void _destroyClientSocket() {
+  @override
+  void destroyClient() {
     try {
       _clientSocket.destroy();
-    }
-    // ignore: empty_catches
-    catch (ignore) {}
+    } catch (_) {}
   }
 
-  void _destroySecondarySocket() {
+  @override
+  void destroySecondary() {
     try {
       _secondarySocket.destroy();
-    }
-    // ignore: empty_catches
-    catch (ignore) {}
+    } catch (_) {}
   }
 }
 

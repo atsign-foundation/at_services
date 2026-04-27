@@ -6,11 +6,24 @@
 
 ## at_secondary_proxy
 
-**at_secondary_proxy** acts as a TCP reverse proxy for connections from
+**at_secondary_proxy** acts as a reverse proxy for connections from
 clients to secondary servers, where the clients are limited in the ports
 they can connect to - for example if they are behind a firewall which limits
 the ports that outgoing connections can connect to using an allow-list or
 block-list or both.
+
+The proxy uses TLS ALPN to dispatch each inbound connection:
+
+* `atProtocol/1.0` or null — bridged to the upstream atServer as a raw
+  `SecureSocket`. The proxy waits for a `from:<atSign>\n` from the
+  client, looks up that atSign's atServer, and forwards bytes
+  bidirectionally.
+* `http/1.1` — handled either as an HTTP GET (e.g. `/@<atSign>` or
+  `/@<atSign>/<key>`) or, when the request path is `/ws`, upgraded
+  to a WebSocket and bridged to the upstream atServer's own `/ws`
+  endpoint. The WebSocket bridge uses the same `from:`-based
+  discovery handshake as the TCP path, with WebSocket frames in
+  place of raw bytes.
 
 ### Usage
 

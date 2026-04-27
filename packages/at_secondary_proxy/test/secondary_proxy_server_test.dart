@@ -82,6 +82,52 @@ void main() {
       await client.close();
     });
 
+    test('WebSocket on /ws receives @ prompt and triggers findSecondary',
+        () async {
+      final serverSocket = getSecureServerSocket(server);
+      final port = serverSocket.port;
+
+      // HttpClient that accepts the proxy's self-signed cert and negotiates
+      // http/1.1 ALPN (matching what the proxy advertises on its inbound
+      // listener).
+      final httpClient = HttpClient(
+          context: SecurityContext(withTrustedRoots: true)
+            ..setAlpnProtocols(['http/1.1'], false))
+        ..badCertificateCallback = (_, __, ___) => true;
+
+      final ws = await WebSocket.connect(
+        'wss://localhost:$port/ws',
+        customClient: httpClient,
+      );
+
+      final received = <dynamic>[];
+      final firstFrame = Completer<dynamic>();
+      ws.listen(
+        (frame) {
+          received.add(frame);
+          if (!firstFrame.isCompleted) firstFrame.complete(frame);
+        },
+        onError: (_) {},
+        onDone: () {},
+      );
+
+      final prompt =
+          await firstFrame.future.timeout(const Duration(seconds: 2));
+      expect(prompt, '@');
+
+      ws.add('from:@alice\n');
+      // Give the proxy time to parse the command and invoke findSecondary
+      // (which throws in this test, closing the bridge).
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+
+      expect(addressFinder.lookups, contains('@alice'));
+
+      try {
+        await ws.close();
+      } catch (_) {}
+      httpClient.close(force: true);
+    });
+
     test('does not create bridge when running flag is false', () async {
       final serverSocket = getSecureServerSocket(server);
       final port = serverSocket.port;

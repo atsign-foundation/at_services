@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 
 import 'secondary_connection_bridge.dart';
+import 'secondary_websocket_bridge.dart';
 
 class SecondaryProxyServer {
   static final String _certificateChainLocation = 'certs/fullchain.pem';
@@ -18,9 +19,16 @@ class SecondaryProxyServer {
   final int bindPort;
   final String proxyUrl;
   final SecondaryAddressFinder secondaryAddressFinder;
-  final ioClient = IOClient(HttpClient(
-      context: SecurityContext(withTrustedRoots: true)
-        ..setAlpnProtocols(['http/1.1'], false)));
+  final ioClient = IOClient(HttpClient(context: _outboundHttpContext()));
+
+  /// Builds the SecurityContext for outbound connections to upstream
+  /// atServers (trust roots + http/1.1 ALPN). Used by both the HTTP GET
+  /// path and the WebSocket-bridge path so they negotiate the same ALPN.
+  static SecurityContext _outboundHttpContext() =>
+      SecurityContext(withTrustedRoots: true)
+        ..setAlpnProtocols(['http/1.1'], false);
+
+  final SecurityContext outboundWebSocketContext = _outboundHttpContext();
 
   late SecureServerSocket _secureServerSocket;
 
@@ -65,10 +73,17 @@ class SecondaryProxyServer {
     HttpServer httpServer = HttpServer.listenOn(pseudoServerSocket);
     httpServer.listen((HttpRequest req) {
       if (req.uri.path == '/ws') {
-        //   // Upgrade to a WebSocket connection
-        //   logger.info('Upgraded to WebSocket connection');
-        //   WebSocketTransformer.upgrade(req)
-        //       .then((WebSocket ws) => webSocketListener(ws));
+        logger.info('Upgrading inbound to WebSocket');
+        WebSocketTransformer.upgrade(req).then((WebSocket ws) {
+          SecondaryWebSocketBridge(
+            proxyUrl,
+            ws,
+            secondaryAddressFinder,
+            outboundWebSocketContext,
+          );
+        }).catchError((e) {
+          logger.warning('WebSocket upgrade failed: $e');
+        });
       } else {
         handleHttpRequest(req);
       }
