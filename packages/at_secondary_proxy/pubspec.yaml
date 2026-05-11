@@ -11,6 +11,7 @@ dependencies:
   at_utils: ^3.4.0
   at_lookup: ^3.5.0
   http: ^1.6.0
+  args: ^2.7.0
 
 dev_dependencies:
   lints: ^6.1.0
