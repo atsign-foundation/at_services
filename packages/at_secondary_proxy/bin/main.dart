@@ -57,15 +57,22 @@ SecondaryProxyServer _serverFromPositionalArgs(List<String> arguments) {
 SecondaryProxyServer _serverFromFlagArgs(List<String> arguments) {
   final parser = ArgParser()
     ..addOption('proxy-url',
-        help: 'Public-facing proxy address, e.g. vip.ve.atsign.zone:443')
+      mandatory: true,
+      help: 'Public-facing proxy address, e.g. vip.ve.atsign.zone:443')
     ..addOption('root-url',
-        help: 'atDirectory address, e.g. root.atsign.org:64')
+      mandatory: true,
+      help: 'upstream atDirectory address, e.g. vip.ve.atsign.zone:64')
     ..addOption('bind-port',
-        help: 'Local port to bind (defaults to the port in --proxy-url)')
+      mandatory: true,
+      help: 'Local port to bind (defaults to the port in --proxy-url)')
     ..addOption('cert-dir',
-        help: 'Directory containing fullchain.pem, privkey.pem, cacert.pem',
-        defaultsTo: 'certs')
-    ..addFlag('help', abbr: 'h', negatable: false, help: 'Show this help');
+      mandatory: false,
+      help: 'Directory containing fullchain.pem, privkey.pem, cacert.pem',
+      defaultsTo: 'certs')
+    ..addFlag('help', 
+      abbr: 'h',
+      negatable: false, 
+      help: 'Show this help');
 
   late final ArgResults results;
   try {
@@ -125,12 +132,12 @@ SecondaryProxyServer _serverFromFlagArgs(List<String> arguments) {
 }
 
 void _printUsage(ArgParser? parser) {
-  stderr.writeln('Usage (named):      at_proxyserver --proxy-url <host:port> --root-url <host:port> [--bind-port <port>] [--cert-dir <dir>]');
-  stderr.writeln('Usage (positional): at_proxyserver <proxy-url> <root-url> [bind-port]');
+  stderr.writeln('Usage:      at_proxyserver --proxy-url <host:port> --root-url <host:port> [--bind-port <port>] [--cert-dir <dir>]');
+  stderr.writeln('Usage (legacy): at_proxyserver <proxy-url> <root-url> [bind-port]');
   stderr.writeln('');
   stderr.writeln('Examples:');
-  stderr.writeln('  at_proxyserver --proxy-url vip.ve.atsign.zone:443 --root-url root.atsign.org:64 --bind-port 1443 --cert-dir /atsign/proxy/certs');
-  stderr.writeln('  at_proxyserver vip.ve.atsign.zone:443 root.atsign.org:64 1443');
+  stderr.writeln('  at_proxyserver --proxy-url vip.ve.atsign.zone:443 --root-url vip.ve.atsign.zone:64 --bind-port 1443 --cert-dir /atsign/proxy/certs');
+  stderr.writeln('  at_proxyserver vip.ve.atsign.zone:443 vip.ve.atsign.zone:64 1443');
   if (parser != null) {
     stderr.writeln('');
     stderr.writeln(parser.usage);
