@@ -9,15 +9,12 @@ import 'secondary_connection_bridge.dart';
 import 'secondary_websocket_bridge.dart';
 
 class SecondaryProxyServer {
-  static final String _certificateChainLocation = 'certs/fullchain.pem';
-  static final String _privateKeyLocation = 'certs/privkey.pem';
-  static final String _trustedCertificateLocation = 'certs/cacert.pem';
-
   static final logger = AtSignLogger('AtSecondaryProxy');
 
   final int proxyPort;
   final int bindPort;
   final String proxyUrl;
+  final String certDir;
   final SecondaryAddressFinder secondaryAddressFinder;
   final ioClient = IOClient(HttpClient(context: _outboundHttpContext()));
 
@@ -36,15 +33,20 @@ class SecondaryProxyServer {
 
   bool get running => _running;
 
-  SecondaryProxyServer(this.proxyUrl, this.proxyPort, this.bindPort,
-      this.secondaryAddressFinder);
+  SecondaryProxyServer(
+    this.proxyUrl,
+    this.proxyPort,
+    this.bindPort,
+    this.secondaryAddressFinder, {
+    this.certDir = 'certs',
+  });
 
   void startServing() {
     SecurityContext serverContext = SecurityContext(withTrustedRoots: true);
 
-    serverContext.useCertificateChain(_certificateChainLocation);
-    serverContext.usePrivateKey(_privateKeyLocation);
-    serverContext.setTrustedCertificates(_trustedCertificateLocation);
+    serverContext.useCertificateChain('$certDir/fullchain.pem');
+    serverContext.usePrivateKey('$certDir/privkey.pem');
+    serverContext.setTrustedCertificates('$certDir/cacert.pem');
     serverContext.setAlpnProtocols(['atProtocol/1.0', 'http/1.1'], true);
     SecureServerSocket.bind(InternetAddress.anyIPv4, bindPort, serverContext)
         .then((SecureServerSocket secureServerSocket) {
