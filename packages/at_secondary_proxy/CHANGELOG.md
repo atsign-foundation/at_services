@@ -1,4 +1,8 @@
-# at_secondary_proxy change log
+# at_secondary_proxy CHANGELOG
+
+## 2.3.0
+
+- feat: arg parsing
 
 ## 2.2.0
 
