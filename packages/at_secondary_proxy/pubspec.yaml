@@ -18,3 +18,19 @@ dev_dependencies:
   test: ^1.30.0
   mockito: ^5.6.3
   mocktail: ^1.0.4
+
+# TODO: remove once at_lookup (with the configurable
+# CacheableSecondaryAddressFinder.cacheDuration param) and its at_commons
+# ^5.13.0 requirement are released on pub.dev, then bump the at_lookup
+# constraint above instead.
+dependency_overrides:
+  at_lookup:
+    git:
+      url: https://github.com/atsign-foundation/at_client_sdk.git
+      ref: f7fb79fc1b35667a3ea431f428030b66adc955cd
+      path: packages/at_lookup
+  at_commons:
+    git:
+      url: https://github.com/atsign-foundation/at_client_sdk.git
+      ref: 2c6f8026f4934cfe5c1032dc8ffae51f589191b9
+      path: packages/at_commons
