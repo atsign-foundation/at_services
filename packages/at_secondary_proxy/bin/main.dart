@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:args/args.dart';
-import 'package:at_lookup/at_lookup.dart';
 import 'package:at_secondary_proxy/at_secondary_proxy.dart';
+import 'package:at_secondary_proxy/src/ttl_secondary_address_finder.dart';
 import 'package:at_utils/at_logger.dart';
 
 Future<void> main(List<String> arguments) async {
@@ -50,7 +50,7 @@ SecondaryProxyServer _serverFromPositionalArgs(List<String> arguments) {
     proxyUrl,
     int.parse(proxyParts[1]),
     proxyBindPort,
-    CacheableSecondaryAddressFinder(rootParts[0], int.parse(rootParts[1])),
+    TtlSecondaryAddressFinder(rootParts[0], int.parse(rootParts[1])),
   );
 }
 
@@ -126,7 +126,7 @@ SecondaryProxyServer _serverFromFlagArgs(List<String> arguments) {
     proxyUrl,
     int.parse(proxyParts[1]),
     proxyBindPort,
-    CacheableSecondaryAddressFinder(rootParts[0], int.parse(rootParts[1])),
+    TtlSecondaryAddressFinder(rootParts[0], int.parse(rootParts[1])),
     certDir: certDir,
   );
 }
