@@ -1,6 +1,6 @@
 # at_secondary_proxy CHANGELOG
 
-## 2.3.1
+## 2.4.0
 
 - fix: reduce secondary address cache TTL from 1 hour to 1 minute, limiting
   how long a reset atSign's stale address can keep being served.
