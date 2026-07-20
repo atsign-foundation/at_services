@@ -10,7 +10,7 @@ class RecordingSecondaryAddressFinder implements SecondaryAddressFinder {
   final List<String> lookups = <String>[];
 
   @override
-  Future<SecondaryAddress> findSecondary(String atSign) {
+  Future<SecondaryAddress> findSecondary(String atSign, {Duration? timeout}) {
     lookups.add(atSign);
     return _handler(atSign);
   }

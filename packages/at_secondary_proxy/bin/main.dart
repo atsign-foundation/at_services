@@ -50,7 +50,8 @@ SecondaryProxyServer _serverFromPositionalArgs(List<String> arguments) {
     proxyUrl,
     int.parse(proxyParts[1]),
     proxyBindPort,
-    CacheableSecondaryAddressFinder(rootParts[0], int.parse(rootParts[1])),
+    CacheableSecondaryAddressFinder(rootParts[0], int.parse(rootParts[1]),
+        cacheDuration: Duration(minutes: 1)),
   );
 }
 
@@ -126,7 +127,8 @@ SecondaryProxyServer _serverFromFlagArgs(List<String> arguments) {
     proxyUrl,
     int.parse(proxyParts[1]),
     proxyBindPort,
-    CacheableSecondaryAddressFinder(rootParts[0], int.parse(rootParts[1])),
+    CacheableSecondaryAddressFinder(rootParts[0], int.parse(rootParts[1]),
+        cacheDuration: Duration(minutes: 1)),
     certDir: certDir,
   );
 }
