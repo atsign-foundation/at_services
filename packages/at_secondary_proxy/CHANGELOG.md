@@ -2,10 +2,8 @@
 
 ## 2.3.1
 
-- fix: reduce the secondary address cache TTL from the 1-hour default to 1
-  minute, using the new configurable `cacheDuration` param on
-  `CacheableSecondaryAddressFinder`. Limits how long the proxy can keep
-  routing to a stale secondary address after an atSign is reset.
+- fix: reduce secondary address cache TTL from 1 hour to 1 minute, limiting
+  how long a reset atSign's stale address can keep being served.
 
 ## 2.3.0
 
