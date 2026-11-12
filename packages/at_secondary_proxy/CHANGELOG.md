@@ -4,6 +4,7 @@
 
 - fix: reduce secondary address cache TTL from 1 hour to 1 minute, limiting
   how long a reset atSign's stale address can keep being served.
+- build: move to at_utils 4.0.0, at_lookup 4.0.0 and at_commons 5.25.0.
 
 ## 2.3.0
 
