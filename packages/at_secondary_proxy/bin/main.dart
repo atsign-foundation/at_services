@@ -6,6 +6,7 @@ import 'package:at_utils/at_utils_io.dart';
 
 Future<void> main(List<String> arguments) async {
   AtSignLogger.defaultLoggingHandler = StdErrLoggingHandler();
+  AtSignLogger.root_level = 'info';
 
   final bool isPositional = arguments.isNotEmpty && !arguments[0].startsWith('-');
 
