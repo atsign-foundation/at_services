@@ -3,13 +3,13 @@ description: A reverse proxy through which clients can connect to secondary serv
 version: 2.4.0
 
 environment:
-  sdk: '>=3.0.0'
+  sdk: ^3.6.0
 
 
 dependencies:
-  at_commons: ^5.13.0
-  at_utils: ^3.4.0
-  at_lookup: ^3.6.0
+  at_commons: ^5.25.0
+  at_utils: ^4.0.0
+  at_lookup: ^4.0.0
   http: ^1.6.0
   args: ^2.7.0
 

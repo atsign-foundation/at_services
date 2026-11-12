@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:at_commons/at_commons.dart' hide StringBuffer;
 import 'package:at_lookup/at_lookup.dart';
-import 'package:at_utils/at_utils.dart';
+import 'package:at_utils/at_utils_io.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/io_client.dart';
 

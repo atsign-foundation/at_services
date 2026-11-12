@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:args/args.dart';
-import 'package:at_lookup/at_lookup.dart';
+import 'package:at_lookup/at_lookup_io.dart';
 import 'package:at_secondary_proxy/at_secondary_proxy.dart';
-import 'package:at_utils/at_logger.dart';
+import 'package:at_utils/at_utils_io.dart';
 
 Future<void> main(List<String> arguments) async {
-  AtSignLogger.defaultLoggingHandler = AtSignLogger.stdErrLoggingHandler;
+  AtSignLogger.defaultLoggingHandler = StdErrLoggingHandler();
 
   final bool isPositional = arguments.isNotEmpty && !arguments[0].startsWith('-');
 
